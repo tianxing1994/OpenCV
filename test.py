@@ -2,17 +2,14 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-image = np.zeros([40, 40, 1], np.uint8)
 
-mask = np.ones([42, 42, 1], np.uint8)
-mask[11:31, 11:31] = 0
 
-retval, image, mask, rect = cv.floodFill(image=image,
-                                         mask=mask,
-                                         seedPoint=(20, 20),
-                                         newVal=0.5)
+if __name__ == '__main__':
+    image_path = 'C:/Users/tianx/PycharmProjects/opencv/dataset/example.png'
+    image = cv.imread(image_path)
+    image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
 
-plt.imshow(image.reshape(40,40), cmap='gray')
-plt.show()
-plt.imshow(mask.reshape(42,42), cmap='gray')
-plt.show()
+    hist = cv.calcHist([image], [0, 1], None, [32, 32], [0, 180, 0, 256])
+    plt.imshow(hist, cmap='gray')
+    plt.title('HSV')
+    plt.show()
