@@ -29,12 +29,15 @@ def sobel_demo(image):
     :param image:
     :return:
     """
+    # 求图像在水平和垂直方向的梯度. 在像素值变化最快(即边缘处)会出现梯度较大值.
     grad_x = cv.Scharr(image, cv.CV_32F, 1, 0)
     grad_y = cv.Scharr(image, cv.CV_32F, 0, 1)
     # grad_x = cv.Sobel(image, cv.CV_32F, 1, 0)
     # grad_y = cv.Sobel(image, cv.CV_32F, 0, 1)
+    # 将梯度值缩放到 0-255 之间.
     gradx = cv.convertScaleAbs(grad_x)
     grady = cv.convertScaleAbs(grad_y)
+    # 对梯度值进行加权求和.
     gradxy = cv.addWeighted(gradx, 0.5, grady, 0.5, 0)
     # cv.imshow("gradient-x", gradx)
     # cv.imshow("gradient-y", grady)
