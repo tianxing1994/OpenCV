@@ -1,19 +1,19 @@
-import cv2
 import numpy as np
+import cv2
+from matplotlib import pyplot as plt
 
-cap = cv2.VideoCapture(0)
-fgbg = cv2.createBackgroundSubtractorMOG2()
+img1 = cv2.imread(r'C:\Users\tianx\PycharmProjects\opencv\dataset\other\aa.jpg',0)
+img2 = cv2.imread(r'C:\Users\tianx\PycharmProjects\opencv\dataset\other\bb.jpg',0)
 
-while True:
-    ret, frame = cap.read()
-    fgmask = fgbg.apply(frame)
+orb = cv2.ORB_create(nfeatures=50)
+kp1, des1 = orb.detectAndCompute(img1,None)
+kp2, des2 = orb.detectAndCompute(img2,None)
 
-    cv2.imshow('original', frame)
-    cv2.imshow('fg', fgmask)
+print(len(kp1))
 
-    k = cv2.waitKey(30) & 0xff
-    if k == 27:
-        break
+# NORM_L1 和 NORM_L2 是 SIFT 和 SURF 描述符的优先选择，NORM_HAMMING 和 NORM_HAMMING2 是用于 ORB 算法
+# bf = cv2.BFMatcher(normType=cv2.NORM_HAMMING, crossCheck=True)
+matches = des2.match(queryDescriptors=des1)
 
-cap.release()
-cv2.destroyAllWindows()
+print(matches)
+print(len(matches))
