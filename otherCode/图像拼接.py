@@ -1,7 +1,10 @@
+"""
+参考链接:
+https://blog.csdn.net/qq878594585/article/details/81901703
+"""
 # coding: utf-8
 import numpy as np
 import cv2
-
 
 leftgray = cv2.imread(r'C:\Users\tianx\Desktop\splice_a.jpg')
 rightgray = cv2.imread(r'C:\Users\tianx\Desktop\splice_b.jpg')
@@ -18,7 +21,6 @@ searchParams = dict(checks=50)  # 指定递归次数
 flann = cv2.FlannBasedMatcher(indexParams, searchParams)  # 建立匹配器
 matches = flann.knnMatch(des1, des2, k=2)  # 得出匹配的关键点
 
-
 good = []
 # 提取优秀的特征点
 for m, n in matches:
@@ -27,6 +29,8 @@ for m, n in matches:
 src_pts = np.array([kp1[m.queryIdx].pt for m in good])  # 查询图像的特征描述子索引
 dst_pts = np.array([kp2[m.trainIdx].pt for m in good])  # 训练(模板)图像的特征描述子索引
 H = cv2.findHomography(src_pts, dst_pts)  # 生成变换矩阵
+
+
 h, w = leftgray.shape[:2]
 h1, w1 = rightgray.shape[:2]
 shft = np.array([[1.0, 0, w], [0, 1.0, 0], [0, 0, 1.0]])

@@ -31,7 +31,10 @@ def harris_corners_detector():
 
 def sift_corners_detector():
     """
+    https://docs.opencv.org/master/da/df5/tutorial_py_sift_intro.html
     cv2.xfeatures2d.SIFT_create() 此方法已获得专利, 因此, 此方法运行不了.
+    卸载原来的 opencv, 安装:
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-contrib-python==3.4.2.16
     :return:
     """
     # 读取图片并灰度处理
@@ -70,6 +73,8 @@ def sift_corners_detector():
 def surf_corners_detector():
     """
     cv2.xfeatures2d.SURF_create() 此方法已获得专利, 因此, 此方法运行不了.
+    卸载原来的 opencv, 安装:
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-contrib-python==3.4.2.16
     :return:
     """
     # 读取图片并灰度处理
@@ -77,10 +82,10 @@ def surf_corners_detector():
     img = cv2.imread(imgpath)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # 创建SURF对象，对象参数float(4000)为阈值，阈值越高，识别的特征越小。
-    sift = cv2.xfeatures2d.SURF_create(float(4000))
+    surf = cv2.xfeatures2d.SURF_create(float(4000))
     # 将图片进行SURF计算，并找出角点keypoints，keypoints是检测关键点
     # descriptor是描述符，这是图像一种表示方式，可以比较两个图像的关键点描述符，可作为特征匹配的一种方法。
-    keypoints, descriptor = sift.detectAndCompute(gray, None)
+    keypoints, descriptor = surf.detectAndCompute(gray, None)
 
     # cv2.drawKeypoints() 函数主要包含五个参数：
     # image: 原始图片
@@ -106,4 +111,4 @@ def surf_corners_detector():
 
 
 if __name__ == '__main__':
-    harris_corners_detector()
+    surf_corners_detector()
