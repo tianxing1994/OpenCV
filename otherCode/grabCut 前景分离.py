@@ -1,3 +1,8 @@
+"""
+参考链接:
+https://blog.csdn.net/zouxy09/article/details/8534954
+https://docs.opencv.org/3.4.3/d8/d83/tutorial_py_grabcut.html
+"""
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
