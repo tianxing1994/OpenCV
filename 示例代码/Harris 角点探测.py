@@ -3,11 +3,12 @@ import numpy as np
 
 
 def harris_corners_detector():
-    img = cv2.imread(r'C:\Users\tianx\PycharmProjects\opencv\dataset\image0.JPG')
+    img = cv2.imread('../dataset/image0.JPG')
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # cornerHarris函数图像格式为 float32 ，因此需要将图像转换 float32 类型
-    gray = np.float32(gray)
+    # gray = np.float32(gray)
 
     # cornerHarris参数：
     # src - 数据类型为 float32 的输入图像
@@ -38,7 +39,7 @@ def sift_corners_detector():
     :return:
     """
     # 读取图片并灰度处理
-    imgpath = r'C:\Users\tianx\PycharmProjects\opencv\dataset\data\fruits.jpg'
+    imgpath = r'../dataset/data/fruits.jpg'
     img = cv2.imread(imgpath)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # 创建SIFT对象
@@ -78,11 +79,11 @@ def surf_corners_detector():
     :return:
     """
     # 读取图片并灰度处理
-    imgpath = r'C:\Users\tianx\PycharmProjects\opencv\dataset\data\fruits.jpg'
+    imgpath = r'..\dataset\data\fruits.jpg'
     img = cv2.imread(imgpath)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # 创建SURF对象，对象参数float(4000)为阈值，阈值越高，识别的特征越小。
-    surf = cv2.xfeatures2d.SURF_create(float(4000))
+    surf = cv2.xfeatures2d.SURF_create(float(400))
     # 将图片进行SURF计算，并找出角点keypoints，keypoints是检测关键点
     # descriptor是描述符，这是图像一种表示方式，可以比较两个图像的关键点描述符，可作为特征匹配的一种方法。
     keypoints, descriptor = surf.detectAndCompute(gray, None)
@@ -97,7 +98,7 @@ def surf_corners_detector():
     # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
     # cv2.DRAW_MATCHES_FLAGS_DRAW_OVER_OUTIMG
     # cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS
-    img = cv2.drawKeypoints(image=img, outImage=img, keypoints=keypoints, flags=cv2.DRAW_MATCHES_FLAGS_DEFAULT,
+    img = cv2.drawKeypoints(image=img, outImage=img, keypoints=keypoints, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS,
                             color=(51, 163, 236))
 
     # 显示图片

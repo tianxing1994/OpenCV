@@ -15,8 +15,8 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 
-image1 = cv.imread('dataset/data/box.png',0)
-image2 = cv.imread('dataset/data/box_in_scene.png',0)
+image1 = cv.imread('../dataset/data/box.png',0)
+image2 = cv.imread('../dataset/data/box_in_scene.png',0)
 
 sift = cv.xfeatures2d.SIFT_create()
 keypoints1, descriptors1 = sift.detectAndCompute(image1, None)
@@ -56,21 +56,11 @@ if len(good) > 10:
                                 method=cv.RANSAC,
                                 ransacReprojThreshold=5.0)
 
-    print(type(M))
-    print(type(mask))
-    print(M.shape)
-    print(mask.shape)
-    print(M)
-    print(mask)
-
     matchesMask = mask.ravel().tolist()
-
     h, w = image1.shape
     points = np.float32([[0, 0], [0, h-1], [w-1, h-1], [w-1, 0]]).reshape(-1, 1, 2)
-
-    print(points)
+    # 使用转换矩阵将 image1 的大小映射到 image2 中, 再使用 ploylines 画直线.
     dst = cv.perspectiveTransform(points, M)
-
     image2 = cv.polylines(image2, [np.int32(dst)], True, 255, 3, cv.LINE_AA)
 
 else:
