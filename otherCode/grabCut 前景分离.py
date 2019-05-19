@@ -2,6 +2,9 @@
 参考链接:
 https://blog.csdn.net/zouxy09/article/details/8534954
 https://docs.opencv.org/3.4.3/d8/d83/tutorial_py_grabcut.html
+
+官方 python 演示:
+https://github.com/opencv/opencv/blob/master/samples/python/grabcut.py
 """
 import numpy as np
 import cv2
