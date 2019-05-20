@@ -17,9 +17,9 @@ def face_detect_demo():
     :param image:
     :return:
     """
-    image = cv.imread("C:/Users/tianx/PycharmProjects/opencv/dataset/lena.png")
+    image = cv.imread("../dataset/lena.png")
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    face_detector = cv.CascadeClassifier("C:/Users/tianx/PycharmProjects/opencv/dataset/data/haarcascade_frontalface_alt_tree.xml")
+    face_detector = cv.CascadeClassifier("../dataset/data/haarcascade_frontalface_alt_tree.xml")
     faces = face_detector.detectMultiScale(gray, 1.02, 5)
     for x, y, w, h in faces:
         cv.rectangle(image, (x, y), (x+w, y+h), (0, 0, 255), 2)

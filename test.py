@@ -1,86 +1,30 @@
-"""
-相关函数:
-cv2.xfeatures2d.SIFT_create
-sift.detectAndCompute
-cv2.FlannBasedMatcher
-flann.knnMatch
-cv2.findHomography
-numpy.float32
-cv2.perspectiveTransform
-cv2.polylines
-cv2.drawMatches
-"""
-import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
+import numpy as np
+import argparse
+import shelve
+import imagehash
+import glob
+from PIL import Image
 
 
-image1 = cv.imread('dataset/data/box.png',0)
-image2 = cv.imread('dataset/data/box_in_scene.png',0)
+image_wechat = Image.open('dataset/other/wechat.jpg')
+image_wechat_result = Image.open('dataset/other/wechat_result.jpg')
 
-sift = cv.xfeatures2d.SIFT_create()
-keypoints1, descriptors1 = sift.detectAndCompute(image1, None)
-keypoints2, descriptors2 = sift.detectAndCompute(image2, None)
+h_image_wechat = str(imagehash.dhash(image_wechat))
+h_image_wechat_result = str(imagehash.dhash(image_wechat_result))
 
-index_params = dict(algorithm=0, trees=5)
-search_params = dict(checks=50)
+# result_dhash = imagehash.hex_to_hash(h)
 
-flann = cv.FlannBasedMatcher(index_params, search_params)
+hsh = cv.img_hash.BlockMeanHash_create()
+cv_image_wechat = hsh.compute(np.array(image_wechat, dtype=np.uint8))
+cv_image_wechat_result = hsh.compute(np.array(image_wechat, dtype=np.uint8))
 
-# 指定 k=2, 为每一个 queryDescriptors 查找两个最佳匹配.
-matches = flann.knnMatch(queryDescriptors=descriptors1,
-                         trainDescriptors=descriptors2,
-                         k=2)
+print(h_image_wechat)
+print(h_image_wechat_result)
+print(cv_image_wechat)
+print(cv_image_wechat_result)
 
-# m 是最佳匹配, n 是次佳匹配, m.distance<n.distance. 那么, 当 m 的距离比 n*0.7 还要小时,
-# 则认为这个 queryDescriptors 查询描述符具有一个可靠的匹配. 这是一个好的特征点.
-good = []
-for m, n in matches:
-    if m.distance < 0.7*n.distance:
-        good.append(m)
+print(imagehash.hex_to_hash(h_image_wechat) - imagehash.hex_to_hash(h_image_wechat_result))
 
-# 如果至少找到了 10 个优质的匹配.
-if len(good) > 10:
-    # 索引出每个匹配的 keypoint, 并获取其在图像中的坐标. 并整理成形如:
-    # [[[6.8945546   6.163357]]
-    #  [[34.13517   126.63356]]
-    #           ...
-    #  [[57.72485   129.60405]]
-    #  [[69.18514    79.62016]]]
-    src_points = np.float32([keypoints1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-    dst_points = np.float32([keypoints2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
-    # 找到两个平面之间的透视变换.
-    M, mask = cv.findHomography(srcPoints=src_points,
-                                dstPoints=dst_points,
-                                method=cv.RANSAC,
-                                ransacReprojThreshold=5.0)
-
-    print(type(M))
-    print(type(mask))
-    print(M.shape)
-    print(mask.shape)
-    print(M)
-    print(mask)
-
-    matchesMask = mask.ravel().tolist()
-
-    h, w = image1.shape
-    points = np.float32([[0, 0], [0, h-1], [w-1, h-1], [w-1, 0]]).reshape(-1, 1, 2)
-
-    print(points)
-    dst = cv.perspectiveTransform(points, M)
-
-    image2 = cv.polylines(image2, [np.int32(dst)], True, 255, 3, cv.LINE_AA)
-
-else:
-    print("Not enough matches are found - %d/%d" % (len(good), 10))
-    matchesMask = None
-
-draw_params = dict(matchColor=(0, 255, 0), singlePointColor=None, matchesMask=matchesMask, flags=2)
-
-image3 = cv.drawMatches(image1, keypoints1, image2, keypoints2, good, None, **draw_params)
-
-plt.imshow(image3, 'gray')
-plt.show()
-
+# 两张图是有差别的,  opencv 检测出来的结果是完全相同啊.
+print(cv_image_wechat == cv_image_wechat_result)
