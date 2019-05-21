@@ -3,6 +3,19 @@
 http://www.yyearth.com/index.php?aid=241
 数据集的下载地址:
 http://www.yyearth.com/attachment.php?id=1234
+相关函数:
+cv2.xfeatures2d.SIFT_create
+cv2.FlannBasedMatcher
+cv2.BOWKMeansTrainer
+cv2.BOWImgDescriptorExtractor
+cv2.BOWImgDescriptorExtractor
+extract.compute
+bow_kmeans_trainer.add
+bow_kmeans_trainer.cluster
+extract_bow.setVocabulary
+extract_bow.compute
+cv2.ml.SVM_create
+cv2.putText
 """
 import cv2
 import numpy as np

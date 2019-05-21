@@ -3,6 +3,13 @@
 http://www.yyearth.com/index.php?aid=241
 数据集的下载地址:
 http://www.yyearth.com/attachment.php?id=1234
+
+BOW模型的处理过程:
+1. 采用 SIFT 特征提取. 得到每张图片的特征点 keypoints 及其描述符 descriptor.
+2. 汇总所有训练样本的描述符, 并采用 KMeans 聚类算法将描述符聚类成 N 个特征(到这里, 我们就可以认为所有的图片都只有这 N 种特征).
+3. 计算每一张图片的特征描述符, 并映射成 KMeans 聚类得到的 N 个特征, 统计每张图片中的各特征分别出现的次数. 作为这张图的 BOW 特征(该 BOW 特征, 具有 N 个数字, 作为 1 行).
+4. 至此, 每张图片都可以得到一个具有 N 个特征的向量 (如传统机器学习所需要的数据集).
+5. 有了以数字表示的 BOW 特征, 则可以对图像进行传统机器学习的分类, 聚类等操作.
 """
 import cv2
 import numpy as np
