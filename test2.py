@@ -1,17 +1,27 @@
-import cv2
+import cv2 as cv
 
 
-image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\example.png'
-image = cv2.imread(image_path)
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def show_image(image):
+    cv.namedWindow('input image', cv.WINDOW_NORMAL)
+    cv.imshow('input image', image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+    return
 
-hod = cv2.HOGDescriptor()
+image_path = r'C:/Users/Administrator/PycharmProjects/openCV/dataset2/carData/TrainImages/neg-0.pgm'
+image = cv.imread(image_path)
 
-hod.detect(gray)
+show_image(image)
+
+gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+hog = cv.HOGDescriptor()
+
+result = hog.detect(gray)
+# result = hog.compute(image)
 
 
-result = hod.compute(image)
+
 print(result)
-print(result.shape)
-print(result.sum())
+
 
