@@ -8,11 +8,6 @@ https://blog.csdn.net/qq_19531479/article/details/79649227
 """
 import cv2 as cv
 import numpy as np
-from scipy import signal as sp
-import scipy
-from PIL import Image
-import scipy.ndimage as ndi
-import math
 import matplotlib.pyplot as plt
 
 
@@ -147,17 +142,3 @@ class ReginMerge(object):
 
 if __name__ == '__main__':
     hough = ReginMerge('../dataset/lena.png')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
