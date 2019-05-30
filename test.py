@@ -1,6 +1,11 @@
-import numpy as np
+import heapq
 
 
-x = np.array([[3, 0, 0], [0, 4, 0], [5, 6, 0]])
+heap = [1, 2, 3]
 
-print(np.nonzero(x))
+item = (1, 2, 3)
+
+heapq.heappush(heap, item)
+
+print(heap)
+print(type(heap))

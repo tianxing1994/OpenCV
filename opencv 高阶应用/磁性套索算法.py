@@ -1,8 +1,9 @@
 """
+http://code.activestate.com/recipes/117228/
 https://github.com/pdyban/livewire
 """
 from unittest import TestCase, main
-from livewire import LiveWireSegmentation, compute_shortest_path
+from .livewire import LiveWireSegmentation, compute_shortest_path
 from dicom import read_file
 from skimage import img_as_int
 import numpy as np
