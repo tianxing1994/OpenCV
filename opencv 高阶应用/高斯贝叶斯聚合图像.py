@@ -4,7 +4,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
 from sklearn.svm import SVC, SVR
 
-image_path = r'C:\Users\tianx\PycharmProjects\opencv\dataset\ps_image\image.jpg'
+image_path = '../dataset/other/image.jpg'
 image = cv.imread(image_path)
 image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 image = np.array(image / 255, dtype=np.int)
