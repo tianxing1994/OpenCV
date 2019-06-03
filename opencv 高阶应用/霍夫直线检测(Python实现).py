@@ -1,6 +1,21 @@
 """
 参考链接:
 https://blog.csdn.net/zfjBIT/article/details/87287382
+https://lps-683.iteye.com/blog/2253954
+
+还需要优化:
+1. 非极大值抑制 - 很重要的一点是，要保证直线的准确性，进行非极大值抑制是必要的，即累加器该点值是八领域中的极大值才认可。
+2. 重复直线抑制 - 很有可能一条直线重复检测，这是不希望出现的。因此，为了防止这种现象的出现，我们要做一定的抑制：
+如果当前检测的直线与原来检测过的直线角度、极径都只差某个范围以内，我们可以认定是重复检测。
+
+
+
+https://pdfs.semanticscholar.org/58ce/e69ed2033f559f5ba579b48ac4359bcf524c.pdf
+概率霍夫变换 Probabilistic Hough Transform
+在原来的边缘点集 M 中随机抽取 m 个样本作霍夫变换. 以减少计算量.
+
+随机霍夫转换 Randomized Hough Transform
+对于边缘点集 M 中的点, 两两确定一条直线, 并检查这些直线上分别有多少个点. 点多的保留, 点少的抛弃.
 """
 # -*- coding: utf-8 -*-
 import sys
