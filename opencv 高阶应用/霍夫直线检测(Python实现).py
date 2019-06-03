@@ -1,3 +1,7 @@
+"""
+参考链接:
+https://blog.csdn.net/zfjBIT/article/details/87287382
+"""
 # -*- coding: utf-8 -*-
 import sys
 import numpy as np
@@ -37,6 +41,7 @@ def hough_line(image, rho, theta, threshold):
 
     num_theta = int(180.0 / theta)
 
+    # the_rho 取值范围在 [-L, L] 以内. 因此这里使用 2*L.
     num_rho = int(2 * L / rho + 1)
     accumulator = np.zeros((num_rho, num_theta), np.int32)
     # show_image(cv2.convertScaleAbs(accumulator), 'accumulator')
@@ -53,7 +58,7 @@ def hough_line(image, rho, theta, threshold):
             if image[y, x]==255:
                 for num_theta_c in range(num_theta):
                     the_rho = x * math.cos(theta * num_theta_c / 180.0 * math.pi) + y * math.sin(theta * num_theta_c / 180.0 * math.pi)
-                    # 计算投票哪一个区域. the_rho 取值范围为 [-L, L]. 因此这里加上 L. 使之成为正数.
+                    # 计算投票哪一个区域. the_rho 取值范围在 [-L, L] 以内. 因此这里加上 L. 使之成为正数.
                     n = int(round(the_rho + L) / rho)
                     accumulator[n, num_theta_c] += 1
                     accu_dict[(n, num_theta_c)].append((x, y))
