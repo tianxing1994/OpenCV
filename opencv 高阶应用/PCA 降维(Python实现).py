@@ -5,6 +5,8 @@ https://github.com/zhaoxingfeng/PCA/blob/master/PCA.py
 https://github.com/jimenbian/PCA/blob/master/src/PCA.py
 
 
+
+
 以下给出几个基础命题.
 1. 向量的数量积
 a·b = |a| |b| cosθ
@@ -92,6 +94,10 @@ PCA 算法步骤:
 4）求出协方差矩阵的特征值及对应的特征向量
 5）将特征向量按对应特征值大小从上到下按行排列成矩阵，取前 k 行组成矩阵 P
 6）Y=PX 即为降维到 k 维后的数据
+
+为什么要使用协方差矩阵的特征向量:
+blog.csdn.net/a10767891/article/details/80288463
+blog.csdn.net/babywong/article/details/50085239
 """
 
 import numpy as np

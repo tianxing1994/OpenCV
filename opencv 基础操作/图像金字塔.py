@@ -14,6 +14,7 @@ def pyraimd_demo(image):
     pyramid_images = []
     for i in range(level):
         dst = cv.pyrDown(template)
+        # dst = cv.pyrUp(template)
         pyramid_images.append(dst)
         cv.imshow("pyramid_down_" + str(i), dst)
         template = dst.copy()
@@ -41,7 +42,9 @@ def lapalian_demo(image):
 
 
 if __name__ == '__main__':
-    src = cv.imread("C:/Users/tianx/PycharmProjects/opencv/dataset/lena.png")
+    src = cv.imread("../dataset/lena.png")
+
+
     cv.namedWindow("input image", cv.WINDOW_AUTOSIZE)
     cv.imshow("input image", src)
 
