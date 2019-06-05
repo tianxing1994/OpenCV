@@ -1,7 +1,24 @@
 """
 基于图的图像分割Effective graph-based image segmentation
 https://blog.csdn.net/u014796085/article/details/83449972
+https://blog.csdn.net/surgewong/article/details/39008861
 github.com/luisgabriel/image-segmentation
+
+
+1. 首先, 将图像(image)表达成图论中的图(graph).
+具体说来就是, 把图像中的每一个像素点看成一个顶点 vi∈V (node 或 vertex),
+每个像素与相邻 8 个像素 (8-邻域) 构成图的一条边 ei∈E, 这样就构建好了一个图 G = (V,E).
+图每条边的权值是像素与相邻像素的关系 (灰度图的话是灰度值差的绝对值, RGB图像为3个通道值差平方和开根号),
+表达了相邻像素之间的相似度.
+
+2. 将每个节点 (像素点) 看成单一的区域, 然后进行合并.
+(1) 对所有边根据权值从小到大排序, 权值越小, 两像素的相似度越大.
+(2) S[0] 是一个原始分割, 相当于每个顶点当做是一个分割区域.
+(3) 从小到大遍历所有边, 如果这条边 (vi,vj) 的两个顶点属于不同的分割区域,
+并且权值不大于两个区域的内部差(区域内左右边最大权值), 那么合并这两个区域. 更新合并区域的参数和内部差.
+因为遍历时是从小到大遍历, 所以如果合并, 这条边的权值一定是新区域所有边最大的权值.
+
+3. 最后对所有区域中，像素数都小于min_size的两个相邻区域，进行合并得到最后的分割。
 """
 
 class Node:
@@ -23,6 +40,10 @@ class Forest:
         return self.nodes[i].size
 
     def find(self, n):
+        """
+        :param n: Node 节点对象.
+        :return: 返回 n 在 self.nodes 列表中对应的 Node 对象的最终父节点.
+        """
         temp = n
         while temp != self.nodes[temp].parent:
             temp = self.nodes[temp].parent
@@ -49,6 +70,7 @@ class Forest:
 
 
 def create_edge(img, width, x, y, x1, y1, diff):
+    # 从左向右, 从上向下扫描图像, (x, y) 像素点是第 y*width+x 个像素点. width 是图像的宽度.
     vertex_id = lambda x, y: y * width + x
     w = diff(img, x, y, x1, y1)
     return (vertex_id(x, y), vertex_id(x1, y1), w)
@@ -75,6 +97,13 @@ def build_graph(img, width, height, diff, neighborhood_8=False):
 
 
 def remove_small_components(forest, graph, min_size):
+    """
+    遍历 graph_edges. 将较小的块合并为一个.
+    :param forest:
+    :param graph:
+    :param min_size:
+    :return:
+    """
     for edge in graph:
         a = forest.find(edge[0])
         b = forest.find(edge[1])
@@ -178,9 +207,11 @@ if __name__ == '__main__':
                         help='a constant to control the threshold function of the predicate')
     parser.add_argument('--min-comp-size', type=int, default=2000,
                         help='a constant to remove all the components with fewer number of pixels')
-    parser.add_argument('--input-file', type=str, default="../dataset/other/panda.jpg",
+    # ../dataset/other/people.jpg; ../dataset/other/panda.jpg
+    parser.add_argument('--input-file', type=str, default="../dataset/other/people.jpg",
                         help='the file path of the input image')
-    parser.add_argument('--output-file', type=str, default="../dataset/other/panda_output.jpg",
+    # ../dataset/other/people_output.jpg; ../dataset/other/panda_output.jpg
+    parser.add_argument('--output-file', type=str, default="../dataset/other/people_output.jpg",
                         help='the file path of the output image')
     args = parser.parse_args()
 
