@@ -69,31 +69,122 @@ class Forest:
             print(node)
 
 
-def create_edge(img, width, x, y, x1, y1, diff):
-    # 从左向右, 从上向下扫描图像, (x, y) 像素点是第 y*width+x 个像素点. width 是图像的宽度.
-    vertex_id = lambda x, y: y * width + x
-    w = diff(img, x, y, x1, y1)
-    return (vertex_id(x, y), vertex_id(x1, y1), w)
+class Vertex(object):
+
+    def __init__(self, id, x, y, value):
+        self.id = id
+        self.x = x
+        self.y = y
+        self.value = value
+        self._parent = None
+        self._original_parent = None
+        self._size = 1
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        self._parent = value
+        self.update_original_parent()
+        return
+
+    def update_original_parent(self):
+        real_original_parent = self.find_original_parent()
+        if self.parent is not real_original_parent:
+            self.parent = real_original_parent
+        return
+
+    def find_original_parent(self, vertex=None):
+        if vertex is None:
+            vertex = self
+        if vertex.parent is None:
+            return self
+
+        original_parent = vertex.parent
+        while True:
+            if original_parent.parent is None: break
+            original_parent = original_parent.parent
+        return original_parent
+
+    @property
+    def size(self):
+        if self._original_parent is None:
+            result = self._size
+        else:
+            result = self._original_parent.size
+        return result
+
+    def merge(self, other):
+        if self._original_parent is other._original_parent:
+            return
+        other._original_parent.parent = self._original_parent
+        return
 
 
-def build_graph(img, width, height, diff, neighborhood_8=False):
-    graph_edges = []
-    for y in range(height):
-        for x in range(width):
-            if x > 0:
-                graph_edges.append(create_edge(img, width, x, y, x-1, y, diff))
+class Edge(object):
+    def __init__(self, left_vertex, right_vertex):
+        self.left_vertex = left_vertex
+        self.right_vertex = right_vertex
+        self.weight = self.calculate_weight()
 
-            if y > 0:
-                graph_edges.append(create_edge(img, width, x, y, x, y-1, diff))
+    def calculate_weight(self):
+        _result = np.sum((self.left_vertex.value - self.right_vertex.value) ** 2)
+        return np.sqrt(_result)
 
-            if neighborhood_8:
-                if x > 0 and y > 0:
-                    graph_edges.append(create_edge(img, width, x, y, x-1, y-1, diff))
 
-                if x > 0 and y < height-1:
-                    graph_edges.append(create_edge(img, width, x, y, x-1, y+1, diff))
+class Graph(object):
+    def __init__(self, image_path):
+        self.image = cv.imread(image_path)
+        self.image_height = self.image[0]
+        self.image_width = self.image[1]
 
-    return graph_edges
+        self.graph_vertex = None
+        self.graph_edges = None
+
+    def _init_vertex(self):
+        self.vertex_no = self.image_height * self.image_width
+        self.graph_vertex = []
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                vertex_id = y * self.image_width + x
+                value = self.image[y, x]
+                self.graph_vertex.append(Vertex(vertex_id, x, y, value))
+        return
+
+    def _init_edges(self):
+        self.graph_edges = []
+        for vertex in self.graph_vertex:
+            if vertex.x
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                self.graph_edges.append(Edge(vertex_id, x, y, value))
+        return
+
+    def _difference(self, x1, y1, x2, y2):
+        _result = np.sum((self.image[x1, y1] - self.image[x2, y2]) ** 2)
+        return np.sqrt(_result)
+
+    def _create_edge(self, x1, y1, x2, y2):
+        vertex_id = lambda x, y: y * self.image_width + x
+        w = self._difference(x1, y1, x2, y2)
+        return (vertex_id(x1, y1), vertex_id(x2, y2), w)
+
+    def build_graph(self, neighborhood_8=False):
+        self.graph_edges = []
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                if x > 0:
+                    self.graph_edges.append(self._create_edge(x, y, x-1, y))
+                if y > 0:
+                    self.graph_edges.append(self._create_edge(x, y, x, y-1))
+                if neighborhood_8:
+                    if x > 0 and y > 0:
+                        self.graph_edges.append(self._create_edge(x, y, x-1, y-1))
+                    if x > 0 and y < self.image_height-1:
+                        self.graph_edges.append(self._create_edge(x, y, x-1, y+1))
+        return self.graph_edges
 
 
 def remove_small_components(forest, graph, min_size):
@@ -111,7 +202,7 @@ def remove_small_components(forest, graph, min_size):
         if a != b and (forest.size_of(a) < min_size or forest.size_of(b) < min_size):
             forest.merge(a, b)
 
-    return  forest
+    return forest
 
 
 def segment_graph(graph_edges, num_nodes, const, min_size, threshold_func):
