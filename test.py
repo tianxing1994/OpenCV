@@ -37,10 +37,13 @@ plt.gray()
 
 titles = ('edge', 'flat', 'corner')
 w = width = radius - 1
+
 edge_labels = range(n_points // 2 - w, n_points // 2 + w + 1)
+
 flat_labels = list(range(0, w + 1)) + list(range(n_points - w, n_points + 2))
 i_14 = n_points // 4            # 1/4th of the histogram
 i_34 = 3 * (n_points // 4)      # 3/4th of the histogram
+
 corner_labels = (list(range(i_14 - w, i_14 + w + 1)) +
                  list(range(i_34 - w, i_34 + w + 1)))
 
