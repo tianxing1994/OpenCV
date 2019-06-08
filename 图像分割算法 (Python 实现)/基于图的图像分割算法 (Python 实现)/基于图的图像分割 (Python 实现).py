@@ -47,7 +47,6 @@ class Forest:
         temp = n
         while temp != self.nodes[temp].parent:
             temp = self.nodes[temp].parent
-
         self.nodes[n].parent = temp
         return temp
 
