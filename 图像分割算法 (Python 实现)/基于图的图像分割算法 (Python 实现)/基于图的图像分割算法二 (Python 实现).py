@@ -203,5 +203,5 @@ def show_image(image, win_name='input image'):
 
 if __name__ == '__main__':
     pass
-    g = Graph(image_path='../../dataset/other/panda.jpg')
+    g = Graph(image_path='../../dataset/damaged.jpg')
     show_image(g.segmented_image)

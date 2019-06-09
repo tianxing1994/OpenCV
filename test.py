@@ -1,3 +1,1 @@
-import random
-
-print(random.randint(0, 255))
+print(pow(2, 1))

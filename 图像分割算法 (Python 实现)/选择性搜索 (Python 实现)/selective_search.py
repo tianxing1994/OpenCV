@@ -12,321 +12,272 @@ https://blog.csdn.net/mao_kun/article/details/50576003
 5. 重复步骤 4, 直到 S=∅, 即最后一个新区域 rt 为整幅图像.
 6. 获取 R 中每个区域的 Bounding Boxes, 去除像素数量小于 2000, 以及宽高比大于 1.2 的, 剩余的框就是物体位置的可能结果 L.
 """
-
-
-class Node:
-    def __init__(self, parent, rank=0, size=1):
-        self.parent = parent
-        self.rank = rank
-        self.size = size
-
-    def __repr__(self):
-        return '(parent=%s, rank=%s, size=%s)' % (self.parent, self.rank, self.size)
-
-
-class Forest:
-    def __init__(self, num_nodes):
-        self.nodes = [Node(i) for i in range(num_nodes)]
-        self.num_sets = num_nodes
-
-    def size_of(self, i):
-        return self.nodes[i].size
-
-    def find(self, n):
-        """
-        :param n: Node 节点对象.
-        :return: 返回 n 在 self.nodes 列表中对应的 Node 对象的最终父节点.
-        """
-        temp = n
-        while temp != self.nodes[temp].parent:
-            temp = self.nodes[temp].parent
-
-        self.nodes[n].parent = temp
-        return temp
-
-    def merge(self, a, b):
-        if self.nodes[a].rank > self.nodes[b].rank:
-            self.nodes[b].parent = a
-            self.nodes[a].size = self.nodes[a].size + self.nodes[b].size
-        else:
-            self.nodes[a].parent = b
-            self.nodes[b].size = self.nodes[b].size + self.nodes[a].size
-
-            if self.nodes[a].rank == self.nodes[b].rank:
-                self.nodes[b].rank = self.nodes[b].rank + 1
-
-        self.num_sets = self.num_sets - 1
-
-    def print_nodes(self):
-        for node in self.nodes:
-            print(node)
-
-
-def create_edge(img, width, x, y, x1, y1, diff):
-    # 从左向右, 从上向下扫描图像, (x, y) 像素点是第 y*width+x 个像素点. width 是图像的宽度.
-    vertex_id = lambda x, y: y * width + x
-    w = diff(img, x, y, x1, y1)
-    return (vertex_id(x, y), vertex_id(x1, y1), w)
-
-
-def build_graph(img, width, height, diff, neighborhood_8=False):
-    graph_edges = []
-    for y in range(height):
-        for x in range(width):
-            if x > 0:
-                graph_edges.append(create_edge(img, width, x, y, x-1, y, diff))
-
-            if y > 0:
-                graph_edges.append(create_edge(img, width, x, y, x, y-1, diff))
-
-            if neighborhood_8:
-                if x > 0 and y > 0:
-                    graph_edges.append(create_edge(img, width, x, y, x-1, y-1, diff))
-
-                if x > 0 and y < height-1:
-                    graph_edges.append(create_edge(img, width, x, y, x-1, y+1, diff))
-
-    return graph_edges
-
-
-def remove_small_components(forest, graph, min_size):
-    """
-    遍历 graph_edges. 将较小的块合并为一个.
-    :param forest:
-    :param graph:
-    :param min_size:
-    :return:
-    """
-    for edge in graph:
-        a = forest.find(edge[0])
-        b = forest.find(edge[1])
-
-        if a != b and (forest.size_of(a) < min_size or forest.size_of(b) < min_size):
-            forest.merge(a, b)
-
-    return  forest
-
-
-def segment_graph(graph_edges, num_nodes, const, min_size, threshold_func):
-    # Step 1: initialization
-    forest = Forest(num_nodes)
-    weight = lambda edge: edge[2]
-    sorted_graph = sorted(graph_edges, key=weight)
-    threshold = [ threshold_func(1, const) for _ in range(num_nodes) ]
-
-    # Step 2: merging
-    for edge in sorted_graph:
-        parent_a = forest.find(edge[0])
-        parent_b = forest.find(edge[1])
-        a_condition = weight(edge) <= threshold[parent_a]
-        b_condition = weight(edge) <= threshold[parent_b]
-
-        if parent_a != parent_b and a_condition and b_condition:
-            forest.merge(parent_a, parent_b)
-            a = forest.find(parent_a)
-            threshold[a] = weight(edge) + threshold_func(forest.nodes[a].size, const)
-
-    return remove_small_components(forest, sorted_graph, min_size)
-
-
-from random import random, randrange
-from PIL import Image, ImageFilter
-import numpy as np
 import cv2 as cv
+import numpy as np
+import random
 
 
-def diff(img, x1, y1, x2, y2):
-    _out = np.sum((img[x1, y1] - img[x2, y2]) ** 2)
-    return np.sqrt(_out)
+class Node(object):
+    def __init__(self, id, value):
+        self.id = id
+        self.value = value
+        self.root = self.id
+        self.size = 1
 
 
-def threshold(size, const):
-    return (const * 1.0 / size)
+class Edge(object):
+    def __init__(self, node1, node2, weight):
+        self.node1 = node1
+        self.node2 = node2
+        self.weight = weight
 
 
-def generate_image(forest, width, height):
-    random_color = lambda: (int(random() * 255), int(random() * 255), int(random() * 255))
-    colors = [random_color() for i in range(width * height)]
+class Graph(object):
+    def __init__(self, image_path, neighborhood_8=False, min_size=200):
+        self.image = cv.imread(image_path)
+        self.image_height = int(self.image.shape[0])
+        self.image_width = int(self.image.shape[1])
 
-    img = Image.new('RGB', (width, height))
-    im = img.load()
-    for y in range(height):
-        for x in range(width):
-            comp = forest.find(y * width + x)
-            im[x, y] = colors[comp]
+        self.neighborhood_8 = neighborhood_8
+        self.min_size = min_size
 
-    return img.transpose(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
+        self.nodes = self.create_nodes()
+        self.edges = self.create_edges()
+
+        self._label_image = None
+        self._label_no = None
+        self._segmented_image = None
+
+    def create_nodes(self):
+        nodes = []
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                nodes.append(Node(y * self.image_width + x, self.image[y, x]))
+        return nodes
+
+    def diff(self, node1, node2):
+        value1 = self.nodes[node1].value
+        value2 = self.nodes[node2].value
+        result = np.sqrt(np.sum((value1 - value2) ** 2))
+        return result
+
+    def create_edges(self):
+        edges = []
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                node1 = y * self.image_width + x
+                if x > 0:
+                    node2 = y * self.image_width + (x-1)
+                    weight = self.diff(node1, node2)
+                    edges.append(Edge(node1, node2, weight))
+                if y > 0:
+                    node2 = (y-1) * self.image_width + x
+                    weight = self.diff(node1, node2)
+                    edges.append(Edge(node1, node2, weight))
+                if self.neighborhood_8:
+                    if x > 0 and y > 0:
+                        node2 = (y-1) * self.image_width + (x-1)
+                        weight = self.diff(node1, node2)
+                        edges.append(Edge(node1, node2, weight))
+                    if x > 0 and y < self.image_height - 1:
+                        node2 = (y+1) * self.image_width + (x-1)
+                        weight = self.diff(node1, node2)
+                        edges.append(Edge(node1, node2, weight))
+        result = sorted(edges, key=lambda edge: edge.weight)
+        return result
+
+    # def threshold(self, size, const=10):
+    #     return const * 1.0 / size
+
+    def threshold(self):
+        return 10
+
+    def find_root(self, node):
+        root = node
+        while root != self.nodes[root].root:
+            root = self.nodes[root].root
+        return root
+
+    def segment_graph(self):
+        for edge in self.edges:
+            root1 = self.find_root(edge.node1)
+            root2 = self.find_root(edge.node2)
+            if root1 != root2:
+                if edge.weight < self.threshold():
+                    self.merge(root1, root2)
+        return
+
+    def merge_small_components(self):
+        for edge in self.edges:
+            root1 = self.find_root(edge.node1)
+            root2 = self.find_root(edge.node2)
+            if root1 != root2:
+                if self.nodes[root1].size < self.min_size or self.nodes[root2].size < self.min_size:
+                    self.merge(root1, root2)
+        return
+
+    def merge(self, root1, root2):
+        if root1 < root2:
+            self.nodes[root2].root = root1
+            self.nodes[root1].size = self.nodes[root1].size + self.nodes[root2].size
+        if root1 > root2:
+            self.nodes[root1].root = root2
+            self.nodes[root2].size = self.nodes[root1].size + self.nodes[root2].size
+
+    def generate_label_image(self):
+        root_dict = dict()
+        next_label = 0
+        self.segment_graph()
+        self.merge_small_components()
+        _label_image = np.zeros(shape=self.image.shape[:2], dtype=np.uint8)
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                index = y * self.image_width + x
+                root = self.find_root(index)
+                if root not in root_dict:
+                    root_dict[root] = next_label
+                    _label_image[y, x] = next_label
+                    next_label += 1
+                else:
+                    the_label = root_dict[root]
+                    _label_image[y, x] = the_label
+        self._label_image = _label_image
+        self._label_no = next_label
+        return self._label_image, self._label_no
+
+    def random_color(self):
+        result = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        return result
+
+    def generate_segmented_image(self):
+        _label_image, _label_no = self.generate_label_image()
+        color_list = [self.random_color() for _ in range(_label_no)]
+        _segmented_image = np.zeros(shape=self.image.shape, dtype=np.uint8)
+        for y in range(self.image_height):
+            for x in range(self.image_width):
+                _label = _label_image[y, x]
+                color = color_list[_label]
+                _segmented_image[y, x] = color
+        self._segmented_image = _segmented_image
+        return self._segmented_image
+
+    @property
+    def label_image(self):
+        if self._label_image is not None:
+            return self._label_image
+        _label_image, _label_no = self.generate_label_image()
+        return _label_image
+
+    @property
+    def label_no(self):
+        if self._label_no is not None:
+            return self._label_no
+        _label_image, _label_no = self.generate_label_image()
+        return _label_no
+
+    @property
+    def segmented_image(self):
+        if self._segmented_image is not None:
+            return self._segmented_image
+        _segmented_image = self.generate_segmented_image()
+        return _segmented_image
 
 
-def generate_label_map(forest, width, height):
-    random_label = lambda: randrange(width * height)
-    colors = [random_label() for i in range(width * height)]
-
-    img = Image.new('RGB', (width, height))
-    im = img.load()
-    for y in range(height):
-        for x in range(width):
-            comp = forest.find(y * width + x)
-            im[x, y] = colors[comp]
-
-    return img.transpose(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
-
-
-def show_image(image, win_name='input image'):
-    cv.namedWindow(win_name, cv.WINDOW_NORMAL)
-    cv.imshow(win_name, image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-    return
-
-
-def graphbased_segmentation(sigma, neighbor, K, min_comp_size, input_file):
-    image_file = Image.open(input_file)
-    size = image_file.size
-    smooth = image_file.filter(ImageFilter.GaussianBlur(sigma))
-    smooth = np.array(smooth)
-    graph_edges = build_graph(smooth, size[1], size[0], diff, neighbor == 8)
-    forest = segment_graph(graph_edges, size[0] * size[1], K, min_comp_size, threshold)
-    # image = generate_image(forest, size[1], size[0])
-    image = generate_label_map(forest, size[1], size[0])
-    image = np.array(image)
-    # show_image(image)
-    return image
-
-
-# <! 以上是 graphbases_image_segmentation. 以下是 selective search. >
-import numpy
+# <! 以上是 graphbased_image_segmentation. 以下是 selective search. >
 import skimage
 import skimage.io
 import skimage.feature
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
 
 
-def _generate_segments(img_path, neighbor, sigma, scale, min_size):
-    # open the Image
-    # im_mask = graphbased_segmentation(img_path, neighbor, sigma, scale, min_size)
-    im_mask = graphbased_segmentation(sigma, neighbor, scale, min_size, img_path)
-    im_orig = skimage.io.imread(img_path)
+def _generate_segments(image_path, neighbor, min_size):
+    graphbases_segmentation = Graph(image_path, neighbor, min_size)
+    label_image = graphbases_segmentation.label_image
+    origin_image = cv.imread(image_path)
     # merge mask channel to the image as a 4th channel
-    im_orig = numpy.append(
-        im_orig, numpy.zeros(im_orig.shape[:2])[:, :, numpy.newaxis], axis=2)
-
-    im_orig[:, :, 3] = im_mask[:, :, 0]
-    return im_orig
+    origin_image = np.append(origin_image, label_image[:, :, np.newaxis], axis=2)
+    return origin_image
 
 
-def _calc_colour_hist(img):
-    """
-        calculate colour histogram for each region
-        the size of output histogram will be BINS * COLOUR_CHANNELS(3)
-        number of bins is 25 as same as [uijlings_ijcv2013_draft.pdf]
-        extract HSV
-    """
-    BINS = 25
-    hist = numpy.array([])
+def _calc_colour_hist(image):
+    # image 是包含许多像素点的列表, 每个像素点是三个值的 ndarray.
+    bins = 25
+    hist = np.array([])
     for colour_channel in (0, 1, 2):
-        # extracting one colour channel
-        c = img[:, colour_channel]
-        # calculate histogram for each colour and join to the result
-        hist = numpy.concatenate(
-            # result of np.histogram like to: (array([......], dtype=int64), array([ ......]))
-            [hist] + [numpy.histogram(c, BINS, (0.0, 255.0))[0]])
-    # L1 normalize
-    hist = hist / len(img)
+        c = image[:, colour_channel]
+        hist = np.concatenate([hist] + [np.histogram(c, bins, (0.0, 255.0))[0]])
+    hist = hist / len(image)
     return hist
 
 
-def _calc_texture_gradient(img):
-    """
-        calculate texture gradient for entire image
-        The original SelectiveSearch algorithm proposed Gaussian derivative
-        for 8 orientations, but we use LBP instead.
-        output will be [height(*)][width(*)]
-    """
-    ret = numpy.zeros(img.shape)
-
+def _calc_texture_gradient_image(image):
+    result = np.zeros(image.shape)
     for colour_channel in (0, 1, 2):
-        ret[:, :, colour_channel] = skimage.feature.local_binary_pattern(
-            img[:, :, colour_channel], 8, 1.0)
-    return ret
+        result[:, :, colour_channel] = skimage.feature.local_binary_pattern(image[:, :, colour_channel], 8, 1.0)
+    return result
 
 
-def _calc_texture_hist(img):
-    """
-        calculate texture histogram for each region
-
-        calculate the histogram of gradient for each colours
-        the size of output histogram will be
-            BINS * ORIENTATIONS * COLOUR_CHANNELS(3)
-    """
-    BINS = 10
-    hist = numpy.array([])
+def _calc_texture_hist(image):
+    # image 是包含许多像素点的列表, 每个像素点是三个值的 ndarray.
+    # 不过这里的每个像素上的值, 是 lbp 特征值.
+    bins = 10
+    hist = np.array([])
     for colour_channel in (0, 1, 2):
-        # mask by the colour channel
-        fd = img[:, colour_channel]
-        # calculate histogram for each orientation and concatenate them all
-        # and join to the result
-        hist = numpy.concatenate(
-            [hist] + [numpy.histogram(fd, BINS, (0.0, 1.0))[0]])
-    # L1 Normalize
-    hist = hist / len(img)
+        fd = image[:, colour_channel]
+        # print(np.histogram(fd, bins, (0.0, 1.0)))
+        hist = np.concatenate([hist] + [np.histogram(fd, bins, (0.0, 1.0))[0]])
+    hist = hist / len(image)
     return hist
 
 
 def _sim_colour(r1, r2):
-    """
-        calculate the sum of histogram intersection of colour
-    """
-    # return sum([min(a, b) for a, b in zip(r1["hist_c"], r2["hist_c"])])
-    return sum([1 if a==b else 1-float(abs(a - b))/max(a, b) for a, b in zip(r1["hist_c"], r2["hist_c"])])/len(r1)
+    # 给定两个块, r1, r2, 计算其颜色直方图中, 每一个 bin 上, 来自 r1, r2 中, 较小值除以较大值.
+    # r1, r2 的长度应该都是 75.
+    return sum([1 if a==b else float(min(a, b)/max(a, b)) for a, b in zip(r1["hist_c"], r2["hist_c"])])/len(r1)
 
 
 def _sim_texture(r1, r2):
-    """
-        calculate the sum of histogram intersection of texture
-    """
-    # return sum([min(a, b) for a, b in zip(r1["hist_t"], r2["hist_t"])])
-    return sum([1 if a==b else 1-float(abs(a - b))/max(a, b) for a, b in zip(r1["hist_t"], r2["hist_t"])])/len(r1)
+    # 给定两个块, r1, r2, 计算其 lbp 纹理直方图中, 每一个 bin 上, 来自 r1, r2 中, 较小值除以较大值.
+    # r1, r2 的长度应该都是 75.
+    return sum([1 if a==b else float(min(a, b)/max(a, b)) for a, b in zip(r1["hist_t"], r2["hist_t"])])/len(r1)
 
 
 def _sim_size(r1, r2, imsize):
     """
-        calculate the size similarity over the image
+    calculate the size similarity over the image
     """
+    # r1["size"] 不是 r1 块中的像素点的数量, 而是, 其最小 ROI 外接矩形的面积.
+    # 值为 1 时, 最相似.
     return 1.0 - (r1["size"] + r2["size"]) / imsize
 
 
 def _sim_fill(r1, r2, imsize):
     """
-        calculate the fill similarity over the image
+    calculate the fill similarity over the image
     """
+    # bbsize, 两个块被识作一个块之后, 其最小 ROI 外接矩形的面积.
     bbsize = (
         (max(r1["max_x"], r2["max_x"]) - min(r1["min_x"], r2["min_x"]))
         * (max(r1["max_y"], r2["max_y"]) - min(r1["min_y"], r2["min_y"]))
     )
+    # 值越大, 越相似.
     return 1.0 - (bbsize - r1["size"] - r2["size"]) / imsize
 
 
 def _calc_sim(r1, r2, imsize):
+    # 计算相似度.
     return (_sim_colour(r1, r2) + _sim_texture(r1, r2)
             + _sim_size(r1, r2, imsize) + _sim_fill(r1, r2, imsize))
 
 
-def _extract_regions(img):
-    # 创建字典
-    R = {}
-    # get hsv image
-    hsv = skimage.color.rgb2hsv(img[:, :, :3])
+def _extract_regions(image):
+    # 以图像中每一个块标签为 key, value 中存储该块的一些性质.
+    R = dict()
 
-    # pass 1: count pixel positions
-    # 遍历img中所有的元素，y为索引，i为一个（r,g,b,l）
-    for y, i in enumerate(img):
-        for x, (r, g, b, l) in enumerate(i):
-            # initialize a new region
+    for y, row in enumerate(image):
+        for x, (r, g, b, l) in enumerate(row):
             if l not in R:
                 R[l] = {
-                    "min_x": 0xffff, "min_y": 0xffff,
+                    "min_x": float('inf'), "min_y": float('inf'),
                     "max_x": 0, "max_y": 0, "labels": [l]}
             # bounding box
             if R[l]["min_x"] > x:
@@ -338,24 +289,21 @@ def _extract_regions(img):
             if R[l]["max_y"] < y:
                 R[l]["max_y"] = y
 
-    # pass 2: calculate texture gradient
-    tex_grad = _calc_texture_gradient(img)
+    texture_image = _calc_texture_gradient_image(image)
 
-    # pass 3: calculate colour histogram of each region
     for k, v in list(R.items()):
-        # colour histogram
-        masked_pixels = hsv[:, :, :][img[:, :, 3] == k]
+        masked_pixels = image[image[:, :, 3] == k]
         R[k]["size"] = len(masked_pixels / 4)
         R[k]["hist_c"] = _calc_colour_hist(masked_pixels)
-        # texture histogram
-        R[k]["hist_t"] = _calc_texture_hist(tex_grad[:, :][img[:, :, 3] == k])
-
+        R[k]["hist_t"] = _calc_texture_hist(texture_image[image[:, :, 3] == k])
     return R
 
 
 def _extract_neighbours(regions):
-
+    # regions 是由 _extract_regions 函数计算出的 R.
+    # 对 regions 中的每一个块标签, 分别计算其是否相交, 如果相交, 则存入 neighbours 列表, 并返回.
     def intersect(a, b):
+        # 如果 a, b 的 bounding box 相交, 返回 True, 否则返回 False.
         if (a["min_x"] < b["min_x"] < a["max_x"]
                 and a["min_y"] < b["min_y"] < a["max_y"]) or (
             a["min_x"] < b["max_x"] < a["max_x"]
@@ -373,11 +321,11 @@ def _extract_neighbours(regions):
         for b in R[cur + 1:]:
             if intersect(a[1], b[1]):
                 neighbours.append((a, b))
-
     return neighbours
 
 
 def _merge_regions(r1, r2):
+    # 合并两个块标签的性质.
     new_size = r1["size"] + r2["size"]
     rt = {
         "min_x": min(r1["min_x"], r2["min_x"]),
@@ -385,35 +333,31 @@ def _merge_regions(r1, r2):
         "max_x": max(r1["max_x"], r2["max_x"]),
         "max_y": max(r1["max_y"], r2["max_y"]),
         "size": new_size,
-        "hist_c": (
-            r1["hist_c"] * r1["size"] + r2["hist_c"] * r2["size"]) / new_size,
-        "hist_t": (
-            r1["hist_t"] * r1["size"] + r2["hist_t"] * r2["size"]) / new_size,
+        "hist_c": (r1["hist_c"] * r1["size"] + r2["hist_c"] * r2["size"]) / new_size,
+        "hist_t": (r1["hist_t"] * r1["size"] + r2["hist_t"] * r2["size"]) / new_size,
         "labels": r1["labels"] + r2["labels"]
     }
     return rt
 
 
-def selective_search(
-        img_path, neighbor, sigma, scale, min_size):
+def selective_search(image_path, neighbor, min_size):
 
     # load image and get smallest regions
     # region label is stored in the 4th value of each pixel [r,g,b,(region)]
-    img = _generate_segments(img_path, neighbor, sigma, scale, min_size)
+    image = _generate_segments(image_path, neighbor, min_size)
 
-    if img is None:
+    if image is None:
         return None, {}
 
-    imsize = img.shape[0] * img.shape[1]
-    R = _extract_regions(img)
-    # print(R[0])
+    imsize = image.shape[0] * image.shape[1]
+    R = _extract_regions(image)
 
     # extract neighbouring information
     neighbours = _extract_neighbours(R)
-    # print(neighbours[0])
+
     # calculate initial similarities
     # 创建字典
-    S = {}
+    S = dict()
     for (ai, ar), (bi, br) in neighbours:
         # print(ai)
         # print(bi)
@@ -456,44 +400,36 @@ def selective_search(
             'labels': r['labels']
         })
 
-    return img, regions
+    return image, regions
 
 
 def main():
-
-    img_path = "../../dataset/other/panda.jpg"
+    image_path = "../../dataset/other/people.jpg"
     # loading astronaut image
-    img = skimage.io.imread(img_path)
+    image = cv.imread(image_path)
 
     # perform selective search
-    img_lbl, regions = selective_search(
-        img_path, neighbor = 8 , sigma = 0.5, scale = 200, min_size = 20)
+    image_l, regions = selective_search(image_path, neighbor = 8, min_size = 200)
 
     # 创建集合candidate
     candidates = set()
     for r in regions:
-        # excluding same rectangle (with different segments)
         if r['rect'] in candidates:
-            continue
-        # excluding regions smaller than 2000 pixels
-        if r['size'] < 2000:
-            continue
-        # distorted rects
-        x, y, w, h = r['rect']
-        if w / h > 1.2 or h / w > 1.2:
             continue
         candidates.add(r['rect'])
 
-    # draw rectangles on the original image
-    fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(6, 6))
-    ax.imshow(img)
     for x, y, w, h in candidates:
-        print(x, y, w, h)
-        rect = mpatches.Rectangle(
-            (x, y), w, h, fill=False, edgecolor='red', linewidth=1)
-        ax.add_patch(rect)
+        cv.rectangle(image, (x, y), (x+w, y+h), color=(0, 0, 255), thickness=1, lineType=cv.LINE_AA)
 
-    plt.show()
+    show_image(image)
+
+
+def show_image(image, win_name='input image'):
+    cv.namedWindow(win_name, cv.WINDOW_NORMAL)
+    cv.imshow(win_name, image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+    return
 
 
 if __name__ == '__main__':
