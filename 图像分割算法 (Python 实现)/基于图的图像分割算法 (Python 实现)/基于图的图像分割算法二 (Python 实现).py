@@ -33,6 +33,7 @@ class Node(object):
         self.value = value
         self.root = self.id
         self.size = 1
+        self.max_weight = 0
 
 
 class Edge(object):
@@ -43,10 +44,11 @@ class Edge(object):
 
 
 class Graph(object):
-    def __init__(self, image_path, neighborhood_8=False, min_size=200):
+    def __init__(self, image_path, neighborhood_8=True, min_size=200):
         self.image = cv.imread(image_path)
         self.image_height = int(self.image.shape[0])
         self.image_width = int(self.image.shape[1])
+        self.merge_constant = (self.image_width * self.image_height) / 1e2
 
         self.neighborhood_8 = neighborhood_8
         self.min_size = min_size
@@ -96,11 +98,11 @@ class Graph(object):
         result = sorted(edges, key=lambda edge: edge.weight)
         return result
 
-    # def threshold(self, size, const=10):
-    #     return const * 1.0 / size
-
-    def threshold(self):
-        return 10
+    def threshold(self, root1, root2):
+        threshold1 = self.nodes[root1].max_weight + self.merge_constant / self.nodes[root1].size
+        threshold2 = self.nodes[root2].max_weight + self.merge_constant / self.nodes[root2].size
+        result = max(threshold1, threshold2, 5)
+        return result
 
     def find_root(self, node):
         root = node
@@ -113,7 +115,7 @@ class Graph(object):
             root1 = self.find_root(edge.node1)
             root2 = self.find_root(edge.node2)
             if root1 != root2:
-                if edge.weight < self.threshold():
+                if edge.weight < self.threshold(root1, root2):
                     self.merge(root1, root2)
         return
 
@@ -126,19 +128,24 @@ class Graph(object):
                     self.merge(root1, root2)
         return
 
-    def merge(self, root1, root2):
+    def merge(self, root1, root2, weight=None):
         if root1 < root2:
             self.nodes[root2].root = root1
             self.nodes[root1].size = self.nodes[root1].size + self.nodes[root2].size
+            if weight is not None and self.nodes[root1].max_weight < weight:
+                self.nodes[root1].max_weight = weight
+
         if root1 > root2:
             self.nodes[root1].root = root2
             self.nodes[root2].size = self.nodes[root1].size + self.nodes[root2].size
+            if weight is not None and self.nodes[root2].max_weight < weight:
+                self.nodes[root2].max_weight = weight
 
     def generate_label_image(self):
         root_dict = dict()
         next_label = 0
         self.segment_graph()
-        self.merge_small_components()
+        # self.merge_small_components()
         _label_image = np.zeros(shape=self.image.shape[:2], dtype=np.uint8)
         for y in range(self.image_height):
             for x in range(self.image_width):
@@ -202,6 +209,11 @@ def show_image(image, win_name='input image'):
 
 
 if __name__ == '__main__':
-    pass
-    g = Graph(image_path='../../dataset/damaged.jpg')
+    # image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\other\fifa.jpg'
+    # image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\other\fifapage.jpg'
+    image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\other\silverhome.jpg'
+
+    g = Graph(image_path=image_path)
     show_image(g.segmented_image)
+
+
