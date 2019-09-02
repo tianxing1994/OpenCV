@@ -184,23 +184,13 @@ class PCApercent(object):
         self._fit()
         return self
 
-# df = pd.read_csv(r'iris.txt', header=None)
-# data, label = df[range(len(df.columns) - 1)], df[[len(df.columns) - 1]]
-# data = np.mat(data)
-# print("Original dataset = {}*{}".format(data.shape[0], data.shape[1]))
-# pca = PCAcomponent(data, 3)
-# # pca = PCApercent(data, 0.98)
-# pca.fit()
-# print(pca.low_dataMat)
-# print(pca.variance_ratio)
 
-
-def PCAcomponent_mine(X):
-    """
-    我实现的 PCAcomponent.
-    :param X:
-    :return:
-    """
+def PCAcomponent_mine():
+    X = np.array([[2, 4, 5, 1],
+                  [7, 5, 2, 4],
+                  [8, 5, 4, 2],
+                  [4, 3, 7, 9],
+                  [1, 2, 3, 1]])
     X_mean = X - np.mean(X, axis=0)
     X_mean_m = X_mean / X.shape[0]
 
@@ -212,21 +202,36 @@ def PCAcomponent_mine(X):
     eigVal, eigVect = np.linalg.eig(X_cov)
 
     eigValInd = np.argsort(eigVal)
+    # print(eigValInd)    # [2 3 0 1]
 
-    # 取特征值最大的 2 个特征向量作为新的向量基.
+    # 取特征值最大的 2 个特征向量作为新的向量基.  [-1:-(2 + 1):-1] -> [start: end: step]
     eigValInd = eigValInd[-1:-(2 + 1):-1]
-    small_eigVect = eigVect[:, eigValInd]
-    result = np.dot(X_mean, small_eigVect)
+    max_eigVect = eigVect[:, eigValInd]
+    result = np.dot(X_mean, max_eigVect)
     return result
 
 
-def demo(X):
-    """sklearn PCA 降维"""
-    pca = PCA(n_components=2)
-    result_pca = pca.fit_transform(X)
-    print(result_pca)
-    return
+def pca(x, n):
+    """
+    :param x: 将 X 矩阵降维, 形状为: (m, n)
+    :param n:  指定返回结果中的矩阵的维数.
+    :return:
+    """
+    x_mean = x - np.mean(X, axis=0)
+    x_cov = np.dot(x_mean.T, x_mean)
+    eigVal, eigVect = np.linalg.eig(x_cov)
+    eigValInd = np.argsort(eigVal)
+    eigValInd = eigValInd[-1:-(n + 1):-1]
+    max_eigVect = eigVect[:, eigValInd]
+    result = np.dot(x_mean, max_eigVect)
+    return result
 
+
+def sklearn_pca_demo(X, n):
+    """sklearn PCA 降维"""
+    pca = PCA(n_components=n)
+    result_pca = pca.fit_transform(X)
+    return result_pca
 
 
 if __name__ == '__main__':
@@ -234,7 +239,9 @@ if __name__ == '__main__':
                   [7, 5, 2, 4],
                   [8, 5, 4, 2],
                   [4, 3, 7, 9],
-                  [1, 2, 3, 1]])
+                  [1, 2, 3, 1],
+                  [1, 2, 4, 2],
+                  [2, 5, 3, 1]])
 
-    result = PCAcomponent_mine(X)
+    result = pca(X, 2)
     print(result)

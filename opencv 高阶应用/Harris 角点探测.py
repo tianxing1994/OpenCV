@@ -63,9 +63,7 @@ def sift_corners_detector():
 
     # 显示图片
     cv2.imshow('sift_keypoints', img)
-    while (True):
-        if cv2.waitKey(120) & 0xff == ord("q"):
-            break
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
     return
@@ -103,13 +101,11 @@ def surf_corners_detector():
 
     # 显示图片
     cv2.imshow('sift_keypoints', img)
-    while (True):
-        if cv2.waitKey(120) & 0xff == ord("q"):
-            break
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
     return
 
 
 if __name__ == '__main__':
-    surf_corners_detector()
+    sift_corners_detector()

@@ -55,14 +55,22 @@ def back_projection_demo():
     return
 
 
-def hist2d_demo(image):
-    hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)
-    hist = cv.calcHist([image], [0, 1], None, [180, 256], [0, 180, 0, 256])
+def hsv_image_back_project():
+    # 彩色直方图反向投影
+    image = cv.imread(r'C:\Users\Administrator\PycharmProjects\HuaWaQiangDan\code\CFR2.jpg')
+    image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+    roihist = cv.calcHist([image], [0, 1], None, [324, 356], [0, 324, 0, 356])
+    cv.normalize(roihist, roihist, 0, 255, cv.NORM_MINMAX)
+    result = cv.calcBackProject([image], [0, 1], roihist, [0, 324, 0, 356], 1)
+    return result
 
-    plt.imshow(hist, interpolation='nearest')
-    plt.title('2D Histogram')
-    plt.show()
-    return
+
+def gray_image_back_project(image):
+    # 灰度直方图反向投影
+    roihist = cv.calcHist([image], [0], None, [255], [0, 255])
+    cv.normalize(roihist, roihist, 0, 255, cv.NORM_MINMAX)
+    result = cv.calcBackProject([image], [0], roihist, [0, 255], 1)
+    return result
 
 
 if __name__ == '__main__':

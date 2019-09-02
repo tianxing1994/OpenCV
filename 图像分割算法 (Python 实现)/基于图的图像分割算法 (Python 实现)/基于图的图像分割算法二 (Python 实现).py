@@ -211,7 +211,7 @@ def show_image(image, win_name='input image'):
 if __name__ == '__main__':
     # image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\other\fifa.jpg'
     # image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\other\fifapage.jpg'
-    image_path = r'C:\Users\Administrator\PycharmProjects\openCV\dataset\other\silverhome.jpg'
+    image_path = r'C:\Users\Administrator\PycharmProjects\OpenCV\dataset\code\CFR2.jpg'
 
     g = Graph(image_path=image_path)
     show_image(g.segmented_image)
