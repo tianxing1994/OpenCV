@@ -1,6 +1,7 @@
 """
 参考链接:
 http://www.hankcs.com/ml/em-algorithm-and-its-generalization.html
+https://blog.csdn.net/u014157632/article/details/65442165
 http://91up.cc/72/120808.html
 
 概念:
@@ -50,7 +51,6 @@ P(1|B) = (0.55*5+0.2*9+0.27*8+0.65*4+0.35*7) / ((0.55+0.2+0.27+0.65+0.35)*10) = 
 P(1|A)=0.8, P(1|B)=0.52
 
 """
-import math
 import numpy as np
 
 

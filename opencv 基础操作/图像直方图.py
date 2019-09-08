@@ -10,6 +10,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def show_image(image):
+    cv.namedWindow("input image", cv.WINDOW_AUTOSIZE)
+    cv.imshow("input image", image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+    return
+
+
 def plot_demo(image):
     plt.hist(image.ravel(), 256, [0, 256])
     plt.show()
@@ -28,6 +36,19 @@ def image_hist(image):
         plt.plot(hist, color=color)
         plt.xlim([0, 256])
     plt.show()
+    return
+
+
+def gray_hist(image):
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    # images, channels, mask, histSize, ranges, hist=None, accumulate=None
+    # histSize: 直方图的 bin 的数量.
+    # ranges: 用于计算直方图的值的范围, 范围外的值不算入.
+    hist = cv.calcHist(images=[gray], channels=[0], mask=None, histSize=[256], ranges=[0, 256])
+    print(hist)
+    print(hist.shape)
+    print(hist.max())
+    print(hist.T.shape)
     return
 
 
@@ -60,18 +81,7 @@ if __name__ == '__main__':
     src = cv.imread(image_path)
     plot_demo(src)
     """
+    image_path = r'C:\Users\Administrator\PycharmProjects\OpenCV\dataset\image0.JPG'
+    image = cv.imread(image_path)
 
-    image_path = 'C:/Users/tianx/PycharmProjects/opencv/dataset/rice.png'
-    src = cv.imread(image_path)
-    cv.namedWindow("input image", cv.WINDOW_AUTOSIZE)
-
-    src = clahe_demo(src)
-
-    cv.imshow("input image", src)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-
-
-
-
+    gray_hist(image)
