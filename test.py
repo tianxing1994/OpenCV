@@ -1,9 +1,2 @@
-import numpy as np
+print(0.77/(0.77+0.48))
 
-
-nd = np.array([1, 2, 3, 4])
-nd2 = np.zeros(shape=(4, 4))
-
-result = np.broadcast_arrays(nd, )
-
-print(result)
