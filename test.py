@@ -1,2 +1,3 @@
-print(0.77/(0.77+0.48))
+import numpy as np
 
+print(np.array([])**2)
