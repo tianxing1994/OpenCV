@@ -1,9 +1,3 @@
-import numpy as np
-
-
-population = list(range(150))
-np.random.shuffle(population)
-index = population[: 100]
-
-
-print(index)
+print(0.1*0.5)
+print(0.16*0.3)
+print(0.28*0.2)
