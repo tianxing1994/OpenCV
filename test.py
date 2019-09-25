@@ -1,3 +1,11 @@
-print(0.1*0.5)
-print(0.16*0.3)
-print(0.28*0.2)
+import random
+popu = [1, 2, 3, 4, 5, 6]
+weight = [1, 2, 3, 4, 5, 6]
+cum_weight = [1, 2, 3, 4, 5, 6]
+k = 2
+
+x = random.choices(popu, weight, k=k)
+print(x)
+
+y = random.choices(popu, cum_weights=cum_weight, k=3)
+print(y)

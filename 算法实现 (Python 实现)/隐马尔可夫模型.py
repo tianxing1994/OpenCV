@@ -1,6 +1,8 @@
 """
 参考链接:
 https://blog.csdn.net/danliwoo/article/details/82731157
+
+备注: 这个东西还没弄懂. 暂时不想看了.
 """
 import math
 import random
@@ -115,6 +117,19 @@ def calc_alpha(X, T, S, H, A, B, pi):
 
 
 def calc_alpha_demo():
+    """
+    :return:
+    [[2.00000000e-01 3.00000000e-02 1.50000000e-01 1.00000000e-01]
+     [4.50000000e-03 1.82000000e-01 3.24000000e-02 7.80000000e-02]
+     [2.73000000e-02 5.23800000e-03 1.04520000e-01 2.02560000e-02]
+     [7.85700000e-04 4.83756000e-02 6.32808000e-03 4.24886400e-02]
+     [7.25634000e-03 2.32185240e-03 2.37424416e-02 1.24753824e-02]
+     [3.48277860e-04 1.17273216e-02 3.64421045e-03 1.15413708e-02]
+     [1.75909825e-03 5.41788612e-04 9.08036856e-03 2.72122983e-03]
+     [8.12682918e-05 1.61737370e-03 1.20719395e-03 2.61468523e-03]
+     [2.42606055e-04 3.94902112e-04 1.08038909e-03 1.06211428e-03]
+     [5.92353167e-05 4.72333184e-04 3.65480018e-04 6.43847500e-04]]
+    """
     T = 10
     S = ['red', 'white']
     H = ['box1', 'box2', 'box3', 'box4']
@@ -160,6 +175,19 @@ def calc_beta(X, T, S, H, A, B, pi):
 
 
 def calc_beta_demo():
+    """
+    :return:
+    [[7.16966158e-04 1.25461036e-03 8.24604673e-04 1.16390970e-03]
+     [2.10012509e-03 2.38988719e-03 2.23712285e-03 2.24090921e-03]
+     [5.74736869e-03 3.00017871e-03 5.45636389e-03 3.88075782e-03]
+     [6.18930828e-03 8.21052670e-03 7.39922309e-03 8.77060115e-03]
+     [1.20503160e-02 2.06310276e-02 1.52451888e-02 2.05145824e-02]
+     [3.20382000e-02 4.01677200e-02 3.76792800e-02 4.34377600e-02]
+     [5.88600000e-02 1.06794000e-01 7.46160000e-02 1.03600000e-01]
+     [1.71000000e-01 1.96200000e-01 1.93200000e-01 2.12800000e-01]
+     [3.00000000e-01 5.70000000e-01 3.60000000e-01 5.20000000e-01]
+     [1.00000000e+00 1.00000000e+00 1.00000000e+00 1.00000000e+00]]
+    """
     T = 10
     S = ['red', 'white']
     H = ['box1', 'box2', 'box3', 'box4']
@@ -179,6 +207,9 @@ def calc_beta_demo():
 
 
 def forword_backword(alpha, beta, t, T, S, H, A, B, pi):
+    """
+    :return: 0.0022610125891393863
+    """
     if t < 0 or t >= T:
         return 0
     sum = 0
@@ -193,6 +224,16 @@ def forword_backword_demo():
     不论 t 的取值是什么, 最后算出来的观测概率都是一样的.
     为什么要大费周章算第 t 个观测的情况.
     :return:
+     0 0.000632723772630
+     1 0.000632723772630
+     2 0.000632723772630
+     3 0.000632723772630
+     4 0.000632723772630
+     5 0.000632723772630
+     6 0.000632723772630
+     7 0.000632723772630
+     8 0.000632723772630
+     9 0.000632723772630
     """
     T = 10
     S = ['red', 'white']
@@ -216,52 +257,137 @@ def forword_backword_demo():
     return
 
 
-def viterbi(T, S, H, A, B, pi, X):
+def viterbi(A, B, pi, O):
+    """
+    维特比算法, 根据观测值预测隐状态值.
+    :param A: 隐状态间的转移矩阵
+    :param B: 隐状态到观测的发射矩阵
+    :param pi: 初始状态概率向量
+    :param O: 用索引表示的观测值状态序列.
+    :return:
+    """
+    n = len(O)
+    sigma_1 = pi * B[:, O[0]]
+    sigma_list = list()
+    sigma_list.append(sigma_1)
+
+    # 计算 sigma
+    for i in range(1, n):
+        sigma = np.max(A * np.expand_dims(sigma_list[-1], axis=1) * B[:, O[i]], axis=0)
+        sigma_list.append(sigma)
+
+    # 最优路径的终点隐状态 i_T.
+    i_T = np.argmax(sigma_list[-1])
+
+    # 由最优路径的终点 i_T, 逆向求 I.
+    I = list()
+    I.append(i_T)
+    for i in range(n-2, -1, -1):
+        sigma = sigma_list[i]
+        I_t = np.argmax((A * np.expand_dims(sigma, axis=1))[:, I[-1]])
+        I.append(I_t)
+    result = list(reversed(I))
+    return result
+
+
+def viterbi_demo():
+    T = 10
+    S = ['red', 'white']
+    H = ['box1', 'box2', 'box3', 'box4']
+    A = np.array([[0, 1, 0, 0],
+         [0.3, 0, 0.7, 0],
+         [0, 0.4, 0, 0.6],
+         [0, 0, 0.6, 0.4]])
+    B = np.array([[0.5, 0.5],
+         [0.3, 0.7],
+         [0.6, 0.4],
+         [0.4, 0.6]])
+    pi = np.array([0.4, 0.1, 0.25, 0.25])
+    Z, X = observation(T, S, H, A, B, pi)
+
+    # 将文字表示的 X 转换为数字
+    X_ = np.array([S.index(x) for x in X])
+
+    result_index = viterbi(A, B, pi, X_)
+
+    # 将数字表示的隐状态转换为文字
+    result = [H[index] for index in result_index]
+
+    print(X)
+    # 真实的隐状态
+    print(Z)
+    # 预测的隐状态
+    print(result)
+    return
+
+
+def normalization(distribution):
+    sum = np.sum(distribution)
+    if sum == 0:
+        return distribution
+    result = np.array([x/sum for x in distribution])
+    return result
+
+
+def predict(T, S, H, A, B, pi, X, t):
+    """
+
+    :param T: 观测值个数
+    :param S: 观测的状态集
+    :param H: 隐变量的状态集
+    :param A: 隐状态间的转移矩阵
+    :param B: 隐状态到观测的发射矩阵
+    :param pi: 初始状态概率向量
+    :param X: 观测序列
+    :param t: 需要预测的值在观测序列中的索引
+    :return:
+    """
+    alpha = calc_alpha(X, T, S, H, A, B, pi)
+    beta = calc_beta(X, T, S, H, A, B, pi)
     N = len(H)
-    sg = list()
-    parent = [0]
-    # 计算第一个观测值来自于各盒子的概率.
-    for i in range(N):
-        sg.append(pi[i] * B[i][S.index(X[0])])
-
-    for t in range(1, T):
-        sigma = sg
-        sg = list()
-        pt = list()
-
-        # 前一次为哪个隐状态时, 这一次为 i 隐状态的概率最大.
-        for i in range(N):
-            maxindex, maxvalue = [-1, 0]
-            for j in range(N):
-                if sigma[j] * A[j][i] > maxvalue:
-                    maxvalue = sigma[j] * A[j][i]
-                    maxindex = j
-
-            sg.append(maxvalue * B[i][S.index(X[t])])
-            pt.append(maxindex)
-        parent.append(pt)
-
-    for i in range(N):
-        maxindex, maxvalue = [-1, 0]
-        if sigma[i] > maxvalue:
-            maxvalue = sigma[i]
-            maxindex = i
-    parent.append(maxindex)
-    return parent
+    pd = []
+    for sk in S:
+        X[t] = sk
+        if t == 0:
+            for i in range(N):
+                alpha[0][i] = pi[i]*B[i][S.index(X[0])]
+        else:
+            for i in range(N):
+                alpha[t][i] = 0
+                for j in range(N):
+                    alpha[t][i] += alpha[t-1][j]*A[j][i]
+                alpha[t][i] *= B[i][S.index(X[t])]
+        pd.append(forword_backword(alpha, beta, t, T, S, H, A, B, pi))
+    print(pd)
+    print('after normalization: ', normalization(pd))
+    theta = pd.index(max(pd))
+    return S[theta]
 
 
-def get_solution(parent, T):
-    ind = [parent[T]]
-    ret = [H[ind[0]]]
-    for t in range(T-1, 0, -1):
-        p = parent[t][ind[0]]
-        ind.insert(0, p)
-        ret.insert(0, H[p])
-    return ret
+def predict_demo():
+    T = 10
+    S = ['red', 'white']
+    H = ['box1', 'box2', 'box3', 'box4']
+    A = np.array([[0, 1, 0, 0],
+         [0.3, 0, 0.7, 0],
+         [0, 0.4, 0, 0.6],
+         [0, 0, 0.6, 0.4]])
+    B = np.array([[0.5, 0.5],
+         [0.3, 0.7],
+         [0.6, 0.4],
+         [0.4, 0.6]])
+    pi = np.array([0.4, 0.1, 0.25, 0.25])
+    Z, X = observation(T, S, H, A, B, pi)
+
+    result = predict(T, S, H, A, B, pi, X, 3)
+
+    print(X)
+    print(result)
+    return
 
 
 if __name__ == '__main__':
-    forword_backword_demo()
+    predict_demo()
 
 
 
