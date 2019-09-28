@@ -159,6 +159,41 @@ def viterbi(A, B, pi, O):
     return result
 
 
+
+def viterbi_log(pi, A, B, O):
+    """
+    维特比算法. (对数).
+    概率都是小于 1 的数, 多次相乘后, 值变得很小, 会溢出.
+    本方法. 对初始向量, 转换概率矩阵, 发射矩阵的概率取对数后计算 (取对数后相乘变为相加).
+    """
+    pi = np.log(pi + 1e-20)
+    A = np.log(A + 1e-20)
+    B = np.log(B + 1e-20)
+
+    n = len(O)
+    sigma_1 = pi + B[:, O[0]]
+    sigma_list = list()
+    sigma_list.append(sigma_1)
+
+    # 计算 sigma
+    for i in range(1, n):
+        sigma = np.max(A + np.expand_dims(sigma_list[-1], axis=1) + B[:, O[i]], axis=0)
+        sigma_list.append(sigma)
+
+    # 最优路径的终点隐状态 i_T.
+    i_T = np.argmax(sigma_list[-1])
+
+    # 由最优路径的终点 i_T, 逆向求 I.
+    I = list()
+    I.append(i_T)
+    for i in range(n-2, -1, -1):
+        sigma = sigma_list[i]
+        I_t = np.argmax((A + np.expand_dims(sigma, axis=1))[:, I[-1]])
+        I.append(I_t)
+    result = np.array(list(reversed(I)))
+    return result
+
+
 def viterbi_demo():
     A = np.array([[0.5, 0.2, 0.3],
                   [0.3, 0.5, 0.2],

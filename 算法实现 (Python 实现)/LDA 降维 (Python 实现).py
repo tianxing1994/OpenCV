@@ -67,24 +67,35 @@ def lda(x, y, n):
     return result
 
 
-def sklearn_lda_demo(x, y, n):
-    """sklearn LDA 降维
-    http://lijiancheng0614.github.io/scikit-learn/modules/generated/sklearn.decomposition.LatentDirichletAllocation.html
-    """
-    lda = LinearDiscriminantAnalysis(n_components=n)
-    lda.fit(x, y)
-    x_new = lda.transform(x)
-    return x_new
-
-
-if __name__ == '__main__':
+def lda_demo():
     iris = load_iris()
     x = iris.data
     y = iris.target
     x_new = lda(x, y, 2)
-    # x_new = sklearn_lda_demo(x, y, 2)
 
     plt.figure(2)
     plt.scatter(x_new[:, 0], x_new[:, 1], marker='o', c=y)
     plt.show()
+    return
 
+
+def sklearn_lda_demo():
+    """sklearn LDA 降维
+    http://lijiancheng0614.github.io/scikit-learn/modules/generated/sklearn.decomposition.LatentDirichletAllocation.html
+    """
+    iris = load_iris()
+    x = iris.data
+    y = iris.target
+
+    lda = LinearDiscriminantAnalysis(n_components=2)
+    lda.fit(x, y)
+    x_new = lda.transform(x)
+
+    plt.figure(2)
+    plt.scatter(x_new[:, 0], x_new[:, 1], marker='o', c=y)
+    plt.show()
+    return
+
+
+if __name__ == '__main__':
+    sklearn_lda_demo()

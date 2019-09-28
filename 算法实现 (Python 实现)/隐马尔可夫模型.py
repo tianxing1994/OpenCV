@@ -331,7 +331,7 @@ def normalization(distribution):
 
 def predict(T, S, H, A, B, pi, X, t):
     """
-
+    预测观测序列中缺失位置 t 的可能值.
     :param T: 观测值个数
     :param S: 观测的状态集
     :param H: 隐变量的状态集
