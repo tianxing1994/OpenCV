@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from os.path import join
 
-datapath = 'C:/Users/Administrator/PycharmProjects/openCV/dataset2/carData/TrainImages'
+datapath = '../dataset/data/car_data/TestImages'
 
 def path(cls, i):
     return "%s/%s%d.pgm" % (datapath, cls, i+1)
