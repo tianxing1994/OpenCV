@@ -40,7 +40,7 @@ def line_detect_possible_demo(image):
 
 
 if __name__ == '__main__':
-    src = cv.imread("C:/Users/tianx/PycharmProjects/opencv/dataset/morph02.png")
+    src = cv.imread("../dataset/data/image_sample/contours.png")
     cv.namedWindow("input image", cv.WINDOW_AUTOSIZE)
     cv.imshow("input image", src)
 

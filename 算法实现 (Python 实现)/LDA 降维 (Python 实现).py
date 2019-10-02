@@ -17,6 +17,9 @@ https://blog.csdn.net/z962013489/article/details/79918758
 7. 求方阵 w 的特征向量, 取特征值最大的 n 个特征向量.
 8. 对 X_mean 应用 n 个特征向量, 即得到降维后的数据集.
 注: 我不知道, 为什么 Sb 要那样求, 也不知道为什么是求方阵 w 的特征向量就可以实现目标.
+
+问题:
+在应用过程中发现, 我实现的这个 lda 降维会产生虚数部分. 很不明白.
 """
 import numpy as np
 import matplotlib.pyplot as plt

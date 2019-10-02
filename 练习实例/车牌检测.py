@@ -69,8 +69,9 @@ def detect(image):
 
 if __name__ == '__main__':
     # 输入的参数为图片的路径
-    # image_path = '../dataset/data/car_license_plate/license_plate.jpg'
-    image_path = '../dataset/data/car_license_plate/license_plate_2.jpg'
+    # image_path = '../dataset/data/car_license_plate/license_plate_1.jpg'
+    # image_path = '../dataset/data/car_license_plate/license_plate_2.jpg'
+    image_path = '../dataset/data/car_license_plate/license_plate_3.jpg'
     image = cv.imread(image_path)
     image = detect(image)
     show_image(image)
