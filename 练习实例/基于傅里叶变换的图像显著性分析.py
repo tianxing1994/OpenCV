@@ -65,7 +65,7 @@ def significant_image(image):
 
     # 幅度谱, 相位谱
     gray_spectrum = np.log(cv.magnitude(dft[:, :, 0], dft[:, :, 1]))
-    phase_spectrum = np.arctan(dft[:, :, 1], dft[:, :, 0])
+    phase_spectrum = np.arctan2(dft[:, :, 1], dft[:, :, 0])
 
     gray_spectrum_mean = cv.blur(gray_spectrum, ksize=(3, 3))
     spectral_residual = np.exp(gray_spectrum - gray_spectrum_mean)
@@ -76,24 +76,26 @@ def significant_image(image):
 
     new_dft = np.concatenate([cos_spectrum, sin_spectrum], axis=2)
     idft = cv.dft(new_dft, cv.DFT_INVERSE)
-    idft_magnitude = cv.magnitude(idft[:, :, 0], idft[:, :, 1])
-    idft_magnitude = np.array(idft_magnitude / idft_magnitude.max() * 255, dtype=np.uint8)
-
-    return idft_magnitude
+    gray_spectrum_result = cv.magnitude(idft[:, :, 0], idft[:, :, 1])
+    gray_spectrum_result = np.array(gray_spectrum_result / gray_spectrum_result.max() * 255, dtype=np.uint8)
+    return gray_spectrum_result
 
 
 def significant_image_demo():
     # 1. 灰度化读取文件，
-    image_path = '../dataset/data/exercise_image/image_text_r.png'
+    # image_path = '../dataset/data/exercise_image/image_text_r.png'
     # image_path = '../dataset/data/exercise_image/express_paper_1.jpg'
     # image_path = '../dataset/data/exercise_image/express_paper_2.jpg'
     # image_path = '../dataset/data/exercise_image/express_paper_3.jpg'
+    # image_path = '../dataset/data/bank_card/card_ 1.png'
+    image_path = '../dataset/data/bank_card/card_ 3.png'
+
 
     image = cv.imread(image_path, 0)
     idft_magnitude = significant_image(image)
     show_image(idft_magnitude)
 
-    idft_magnitude_blur = cv.blur(idft_magnitude, ksize=(15, 15))
+    idft_magnitude_blur = cv.blur(idft_magnitude, ksize=(5, 5))
     _, binary = cv.threshold(idft_magnitude_blur, 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
     # kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
     # binary_dilate = cv.dilate(binary, kernel)

@@ -1,3 +1,10 @@
+"""
+参考链接:
+https://v.youku.com/v_show/id_XMzE0NDUyNDE0OA
+http://www.doc88.com/p-9062564186170.html
+https://i.youku.com/xuxiaozhan
+
+"""
 import cv2 as cv
 import numpy as np
 

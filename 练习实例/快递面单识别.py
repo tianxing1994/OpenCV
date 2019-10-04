@@ -1,6 +1,13 @@
 """
 参考链接:
 https://blog.csdn.net/huangwumanyan/article/details/82526873
+
+快递面单识别:
+快递面单有很多种形式的, 如果只是对单一的形式进行识别, 那在目标图片和面单模板之间, 做 SIFT 特征提取, 然后 flann 单应性匹配.
+再切割指定位置的内容进行识别, 就好了.
+
+但如果是需要针对多种形式的面单. 我的想法是先在图片中搜索如:
+"收件人", "寄件人" 等标志性文字, 再分析以获取其内容的位置. 这个比较难吧.
 """
 import cv2 as cv
 import numpy as np
@@ -14,45 +21,9 @@ def show_image(image, win_name='input image'):
     return
 
 
-def line_detection(image):
-    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    edges = cv.Canny(gray, 75, 125, apertureSize=3)
-    # kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
-    # edges = cv.dilate(edges, kernel)
-    show_image(edges)
-    lines = cv.HoughLines(edges, 1, np.pi/180, 200)
-
-    for line in lines:
-        rho, theta = line[0]
-        a = np.cos(theta)
-        b = np.sin(theta)
-        x0 = a * rho
-        y0 = b * rho
-        x1 = int(x0 + 1000 * (-b))
-        y1 = int(y0 + 1000 * (a))
-        x2 = int(x0 - 1000 * (-b))
-        y2 = int(y0 - 1000 * (a))
-        cv.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
-    show_image(image)
-
-
-def line_detect_possible_demo(image):
-    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    edges = cv.Canny(gray, 75, 125, apertureSize=3)
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
-    edges = cv.dilate(edges, kernel)
-    show_image(edges)
-    lines = cv.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=50, maxLineGap=0)
-    for line in lines:
-        x1, y1, x2, y2 = line[0]
-        cv.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
-    show_image(image)
-
-
 if __name__ == '__main__':
-    # image_path = '../dataset/data/exercise_image/express_paper.jpg'
-    image_path = '../dataset/data/exercise_image/express_paper_2.jpg'
-    # image_path = '../dataset/data/exercise_image/express_paper_3.jpg'
+    image_path = '../dataset/data/express_paper/express_paper_1.jpg'
+
     image = cv.imread(image_path)
-    print(image.shape)
-    line_detection(image)
+
+    show_image(image)
