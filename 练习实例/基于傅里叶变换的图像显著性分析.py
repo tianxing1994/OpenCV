@@ -90,7 +90,6 @@ def significant_image_demo():
     # image_path = '../dataset/data/bank_card/card_ 1.png'
     image_path = '../dataset/data/bank_card/card_ 3.png'
 
-
     image = cv.imread(image_path, 0)
     idft_magnitude = significant_image(image)
     show_image(idft_magnitude)

@@ -22,6 +22,7 @@ def fourier_demo1():
     image = cv.imread('../dataset/data/exercise_image/image_text_r.png', 0)
 
     dft = cv.dft(np.float32(image), flags=cv.DFT_COMPLEX_OUTPUT)
+
     dft_magnitude = 20 * np.log(cv.magnitude(dft[:, :, 0], dft[:, :, 1]))
     dft_magnitude = np.array(dft_magnitude / dft_magnitude.max() * 255, dtype=np.uint8)
     show_image(dft_magnitude)
