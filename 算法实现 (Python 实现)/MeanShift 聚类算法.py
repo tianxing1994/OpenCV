@@ -129,10 +129,12 @@ class MeanShift(object):
         使用带有权重的样本项献, 先计算每个感兴趣样本与中心的差值作为牵引向量, 为每个牵引向量设置权重. 求和. 得到中心迁移向量 mean_shift
         next_center = center + mean_shift
         得到新的中心.
-        因为原本不代有权重计算迁移向量 mean shift 时, 是感兴趣样本的向量差之和, 所以:
-        为使感兴趣区域样本的权重之和为感兴趣区域样本的数量 n, 则应取 weight = n * kernel_weight / ∑kernel_weight.
+
+        我觉得吧, 应该使感兴趣区域样本的权重之和为感兴趣区域样本的数量 n, 则应取 weight = n * kernel_weight / ∑kernel_weight.
+        但是此方法, 则算法不能得到正确的结果, 而且算法介绍参考链接中是按权重和为 1 计算的.
+        即: weight = kernel_weight / ∑kernel_weight.
         上式改为:
-        mean_shift = ∑(weight * vector) = n * ∑(kernel_weight * vector) / ∑kernel_weight
+        mean_shift = ∑(weight * vector) = ∑(kernel_weight * vector) / ∑kernel_weight
         :param current_center: (ndarray, int), ndarray 形状为 (n,), int 代表该中心内大概有多少个感兴趣样本.
         :param data: ndarray, 形状为 (m, n)
         :return: next_center, count. 返回新的中心, 和旧的中心里有多少个感兴趣样本.
@@ -147,10 +149,8 @@ class MeanShift(object):
                 count += 1
                 interested_sample_vector_sum += kernel_weight * (sample - current_center[0])
                 kernel_weight_sum += kernel_weight
-        # print(count / kernel_weight_sum)
         # mean_shift_vector = count * interested_sample_vector_sum / kernel_weight_sum
         mean_shift_vector = interested_sample_vector_sum / kernel_weight_sum
-        # print(mean_shift_vector)
         next_center = current_center[0] + mean_shift_vector
         result = (next_center, count)
         return result
