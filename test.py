@@ -2,8 +2,9 @@ import cv2 as cv
 import numpy as np
 
 
-nd1 = np.array([1, 2, 3])
-nd2 = np.array([[1, 2, 2], [2, 2, 3]])
+image_path = 'dataset/data/image_sample/lena.png'
+image = cv.imread(image_path)
 
-result = nd1 - nd2
+result = cv.selectROI(windowName='selectROI', img=image, showCrosshair=False, fromCenter=False)
 print(result)
+
