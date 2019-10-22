@@ -124,9 +124,9 @@ difference of Gaussian 函数 (DoG) 的结果可以通过用图像 A 减于图�
 对金字塔每个级别的平滑图像 A 进行处理, 以提取图像梯度和方向. 
 在每个像素 Aij 处, 使用像素差来计算图像梯度量 Mij 和方向 Rij:   
 
-![gaussian_kernel](http://chart.googleapis.com/chart?cht=tx&chl=\Large%20M_{ij}%20=%20\sqrt{(A_{ij}%20-%20A_{i+1,%20j})^{2}%20+%20(A_{ij}%20-%20A_{i,j+1})^{2}})
+![gaussian_kernel](http://chart.googleapis.com/chart?cht=tx&chl=M_{ij}%20=%20\sqrt{(A_{ij}%20-%20A_{i%2B1,%20j})^{2}%20%2B%20(A_{ij}%20-%20A_{i,j%2B1})^{2}})
 
-![gaussian_kernel](http://chart.googleapis.com/chart?cht=tx&chl=\Large%20R_{ij}%20=%20atan2(A_{ij}%20-%20A_{i+1,%20j},%20A_{i,%20j+1}%20-%20A_{ij}))
+![gaussian_kernel](http://chart.googleapis.com/chart?cht=tx&chl=\Large%20R_{ij}%20=%20atan2(A_{ij}%20-%20A_{i%2B1,%20j},%20A_{i,%20j%2B1}%20-%20A_{ij}))
 
 由于先前的平滑程度很高, 因此像素差异可高效计算并提供足够的精度. 
 确定关键位置时, 将补偿有效的半像素位置偏移. 

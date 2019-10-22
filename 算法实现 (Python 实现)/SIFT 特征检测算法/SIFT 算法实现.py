@@ -1,8 +1,6 @@
 """
 参考链接:
 https://github.com/rmislam/PythonSIFT/blob/master/siftdetector.py
-https://github.com/paulaner/SIFT
-https://github.com/DLlearn/SIFT
 
 SIFT 算法介绍
 https://blog.csdn.net/u010440456/article/details/81483145
