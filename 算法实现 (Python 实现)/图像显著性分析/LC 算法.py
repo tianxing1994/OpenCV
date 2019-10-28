@@ -64,7 +64,7 @@ def demo1():
 
 def demo2():
     """LC 算法逻辑的原意代码. 我感觉是这样啊的, 不知道为什么结果不一样. """
-    image_path = '../dataset/data/image_sample/bird.jpg'
+    image_path = '../../dataset/data/image_sample/bird.jpg'
     image = cv.imread(image_path)
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     h, w = gray.shape
