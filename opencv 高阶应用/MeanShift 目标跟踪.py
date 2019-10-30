@@ -19,7 +19,7 @@ while True:
     ret, frame = cap.read()
     if ret is True:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        dst = cv2.calcBackProject([hsv], [0], roi_hist, [0,180], 1)
+        dst = cv2.calcBackProject([hsv], [0], roi_hist, [0, 180], 1)
         ret, track_window = cv2.meanShift(dst, track_window, term_crit)
 
         x, y, w, h = track_window
