@@ -25,12 +25,21 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 
+def show_image(image, win_name='input image'):
+    cv.namedWindow(win_name, cv.WINDOW_NORMAL)
+    cv.imshow(win_name, image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+    return
+
+
 image1 = cv.imread('../dataset/data/other_sample/box.png',0)
 image2 = cv.imread('../dataset/data/other_sample/box_in_scene.png', 0)
 
-sift = cv.xfeatures2d.SIFT_create()
-keypoints1, descriptors1 = sift.detectAndCompute(image1, None)
-keypoints2, descriptors2 = sift.detectAndCompute(image2, None)
+# detector = cv.xfeatures2d.SIFT_create()
+detector = cv.xfeatures2d.SURF_create()
+keypoints1, descriptors1 = detector.detectAndCompute(image1, None)
+keypoints2, descriptors2 = detector.detectAndCompute(image2, None)
 
 index_params = dict(algorithm=0, trees=5)
 search_params = dict(checks=50)
@@ -66,7 +75,6 @@ if len(good) > 10:
                                 method=cv.RANSAC,
                                 ransacReprojThreshold=5.0)
 
-
     matchesMask = mask.ravel().tolist()
     h, w = image1.shape
     points = np.float32([[0, 0], [0, h-1], [w-1, h-1], [w-1, 0]]).reshape(-1, 1, 2)
@@ -81,6 +89,4 @@ draw_params = dict(matchColor=(0, 255, 0), singlePointColor=None, matchesMask=ma
 
 image3 = cv.drawMatches(image1, keypoints1, image2, keypoints2, good, None, **draw_params)
 
-plt.imshow(image3, 'gray')
-plt.show()
-
+show_image(image3)

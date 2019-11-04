@@ -2,6 +2,14 @@
 这个东西, 效果真的很差.
 不过代码的思路是理清楚了.
 
+其中存在的问题应该在:
+其用于生成词袋的 SIFT 特征描述符应使用精确的汽车图片而不是包含汽车的图片, 如此生成的特征集才能够更加准确.
+不过检查了一个数据集, 其中的标注好像是汽车位置左上角的坐标, 而没有 bounding box.
+而且 trueLocations.txt 这个标注是针对 TestImages 的,
+因此, 我也不可能按我的想法优化了.
+
+还有一种说法就是, 需要将误检测的结果整理成 hard example 难例, 放入 SVM 分类器中重新训练模型, 得到更加准确的分类器.
+
 参考文档:
 http://www.yyearth.com/index.php?aid=241
 数据集的下载地址:
@@ -17,7 +25,7 @@ from sklearn.svm import SVC
 class CarDetector(object):
     def __init__(self, train_image_folder):
         self._detect = cv.xfeatures2d.SIFT_create(nfeatures=-1)
-        self._bow_kmeans_trainer = cv.BOWKMeansTrainer(60)
+        self._bow_kmeans_trainer = cv.BOWKMeansTrainer(100)
         self._extract_bow = None
         self._feature_extractor = None
 
@@ -42,6 +50,10 @@ class CarDetector(object):
         return self._extract_bow
 
     def _calc_vocabulary(self):
+        """
+        todo: 因该从图像中载取出汽车的部分再设置词袋.
+        :return:
+        """
         filenames = os.listdir(self._train_image_folder)
         for filename in filenames:
             image_path = os.path.join(self._train_image_folder, filename)
@@ -112,7 +124,7 @@ class CarDetector(object):
         else:
             self._X_train, self._X_test, self._y_train, self._y_test = \
                 train_test_split(self.data, self.target, test_size=test_size)
-        svc = SVC(kernel="linear", probability=True)
+        svc = SVC(kernel="rbf", probability=True)
         svc.fit(self._X_train, self._y_train)
         self._svc = svc
         return self._svc
@@ -292,7 +304,7 @@ def demo1():
     print(y_prob)
     print(score)
 
-    test_image_path = '../dataset/data/car_data/TestImages/test-41.pgm'
+    test_image_path = '../dataset/data/car_data/TestImages/test-40.pgm'
     image = cv.imread(test_image_path)
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     windows = car_detector.detector_car_position(gray, scale=0.8, window_size=(100, 40), step=10, overlap_thresh=0.3)

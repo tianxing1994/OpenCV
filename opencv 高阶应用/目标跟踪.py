@@ -4,15 +4,13 @@
 import cv2
 import sys
 
-import time
-
 if __name__ == '__main__':
 
     # Set up tracker.
     # Instead of MIL, you can also use
 
     tracker_types = ['BOOSTING', 'MIL', 'KCF', 'TLD', 'MEDIANFLOW', 'GOTURN']
-    tracker_type = tracker_types[2]
+    tracker_type = tracker_types[0]
 
     if tracker_type == 'BOOSTING':
         tracker = cv2.TrackerBoosting_create()
@@ -28,7 +26,7 @@ if __name__ == '__main__':
         tracker = cv2.TrackerGOTURN_create()
 
     # Read video
-    video = cv2.VideoCapture('../dataset/video/sample.mov')
+    video = cv2.VideoCapture('../dataset/video/football.mp4')
 
     # Exit if video not opened.
     if not video.isOpened():
@@ -51,7 +49,6 @@ if __name__ == '__main__':
     ok = tracker.init(frame, bbox)
 
     while True:
-        time.sleep(0.2)
         # Read a new frame
         ok, frame = video.read()
         if not ok:

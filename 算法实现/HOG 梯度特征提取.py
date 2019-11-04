@@ -1,6 +1,7 @@
 """
 参考链接:
 https://blog.csdn.net/ppp8300885/article/details/71078555
+https://www.cnblogs.com/alexme/p/11361563.html
 
 HOG特征提取算法的整个实现过程大致如下：
 
@@ -49,16 +50,16 @@ def get_cell_gradient(cell_magnitude, cell_angle, bin_size):
     :return: 列表. 当前 cell 按梯度方向的梯度直方图.
     """
     # 将 360 度分成 bin_size 份, 求取 cell 内各像素的梯度方向直方图
-    angle_unit = 360 / bin_size
+    angle_unit = 180 / bin_size
     orientation_centers = [0] * bin_size
     for k in range(cell_magnitude.shape[0]):
         for l in range(cell_magnitude.shape[1]):
             # 求 cell 内, 每个像素的梯度与梯度方向.
-            gradient_strength = cell_magnitude[k][l]
-            gradient_angle = cell_angle[k][l]
+            gradient_strength = cell_magnitude[k, l]
+            gradient_angle = cell_angle[k, l]
 
             # 求取当前梯度方向所属的角度范围, 比如: 分成 8 个方向时, angle_unit=45°,
-            # 60°则介于 1-2 之间. min_angle, max_angle = 1, 2
+            # 60° 则介于 1-2 之间. min_angle, max_angle = 1, 2
             min_angle = int(gradient_angle / angle_unit) % bin_size
             max_angle = (min_angle + 1) % bin_size
 
@@ -75,16 +76,16 @@ def get_cell_gradient(cell_magnitude, cell_angle, bin_size):
 def get_image_cell_gradient(image, cell_size, bin_size):
     """
     将图像按 cell 分块, 求取每个 cell 的梯度直方图.
-    :param image:
-    :param cell_size:
-    :param bin_size:
-    :return:
+    :param image: 给灰度图像, 计算其每个像素点的梯度大小与方向.
+    :param cell_size: 将图像分成大小为 cell_size 的单元,
+    :param bin_size: 将 360 度方向分成多少种.
+    :return: ndarray, shape=(int(h / cell_size), int(w / cell_size), bin_size)
     """
-    hight, weight = image.shape
+    h, w = image.shape[:2]
 
     gradient_magnitude, gradient_angle = get_gradient(image)
-    # 将整张图像分成 height / cell_size × weight / cell_size 块, 这里将多余的部分舍弃.
-    cell_gradient_vector = np.zeros((int(hight / cell_size), int(weight / cell_size), bin_size))
+    # 将整张图像分成 height / cell_size × width / cell_size 块, 这里将多余的部分舍弃.
+    cell_gradient_vector = np.zeros(shape=(int(h / cell_size), int(w / cell_size), bin_size))
     # print(cell_gradient_vector.shape)
 
     # 对按 cell 分块后的图像中的每个 cell 求取每个 cell 的梯度直方图.
@@ -104,6 +105,13 @@ def get_image_cell_gradient(image, cell_size, bin_size):
 
 
 def get_hog_image(image, cell_size, bin_size):
+    """
+    将 cell_gradient 图像转化成可视图片, 以展示效果.
+    :param image: 原图像, 用于计算 cell_gradient 图.
+    :param cell_size:
+    :param bin_size:
+    :return:
+    """
     angle_unit = 360 / bin_size
     # 与原图大小相同的 hog_image
     hog_image = np.zeros(image.shape)
@@ -128,13 +136,16 @@ def get_hog_image(image, cell_size, bin_size):
                 # 根据该梯度值所属的方向. 求取 x1, y1, x2, y2
                 x1 = int(x + (lengh / 2) * math.cos(angle_radian))
                 y1 = int(y + (lengh / 2) * math.sin(angle_radian))
+                # x2 = int(x)
+                # y2 = int(y)
                 x2 = int(x - (lengh / 2) * math.cos(angle_radian))
                 y2 = int(y - (lengh / 2) * math.sin(angle_radian))
                 # 画线, 线的颜色深浅由梯度值的大小决定.
                 cv.line(hog_image, (y1, x1), (y2, x2), color=int(255 * math.sqrt(magnitude)))
                 # 下一个梯度值的角度方向为 angle:
                 angle += angle_gap
-    return hog_image
+    result = np.array(hog_image, dtype=np.uint8)
+    return result
 
 
 def get_hog_vector(image):
@@ -144,39 +155,42 @@ def get_hog_vector(image):
     hog_vector = []
     for i in range(cell_gradient_vector.shape[0] - 1):
         for j in range(cell_gradient_vector.shape[1] - 1):
+            # 将每 4 个 cell 作为一个 block.
             block_vector = []
             block_vector.extend(cell_gradient_vector[i][j])
             block_vector.extend(cell_gradient_vector[i][j + 1])
             block_vector.extend(cell_gradient_vector[i + 1][j])
             block_vector.extend(cell_gradient_vector[i + 1][j + 1])
+            block_vector = np.array(block_vector)
 
-            # 求 block_vector 向量的平方和再开方, 欧氏距离. 作为该 block 的梯度.
-            mag = lambda vector: math.sqrt(sum(i ** 2 for i in vector))
-            magnitude = mag(block_vector)
-
-            # 对 block_vector 中的梯度值进行归一化.
+            # 求 block_vector 向量的平方和再开方.
+            magnitude = np.sqrt(np.sum(np.square(block_vector)))
+            # 对 block_vector 中的梯度值除以其总和, 得出其各自所占的比例.
             if magnitude != 0:
-                normalize = lambda block_vectoc, magnitude: [element / magnitude for element in block_vector]
-                block_vector = normalize(block_vector, magnitude)
+                block_vector = block_vector / magnitude
 
             hog_vector.append(block_vector)
     # print(np.array(hog_vector).shape)
     return np.array(hog_vector)
 
 
-if __name__ == '__main__':
-    image = cv.imread('../dataset/data/HappyFish.jpg', cv.IMREAD_GRAYSCALE)
-
+def demo1():
+    image = cv.imread('../dataset/data/other/silver.jpg', cv.IMREAD_GRAYSCALE)
 
     # # 显示图像 HOG 图.
     hog_image = get_hog_image(image, cell_size=8, bin_size=8)
-    # show_image(hog_image)
-    plt.imshow(hog_image, cmap='gray')
-    plt.show()
+    show_image(hog_image)
+    return
 
 
+def demo2():
+    image = cv.imread('../dataset/data/other/silver.jpg', cv.IMREAD_GRAYSCALE)
+
+    # 显示图像 HOG 图.
+    result = get_hog_vector(image)
+    print(result.shape)
+    return
 
 
-    # # 获取图像的 HOG 特征
-    # result = get_hog_vector(image)
-    # print(result)
+if __name__ == '__main__':
+    demo1()

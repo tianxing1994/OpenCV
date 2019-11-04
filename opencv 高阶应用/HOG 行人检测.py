@@ -17,11 +17,11 @@ def draw_person(img, person):
     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
 
-img = cv2.imread("dataset/data/people/people.jpg")
+img = cv2.imread("../dataset/data/people/people.jpg")
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-found, w = hog.detectMultiScale(img, winStride=(8,8),scale=1.05)
+found, w = hog.detectMultiScale(img, winStride=(8, 8), scale=1.05)
 
 found_filtered = []
 for ri, r in enumerate(found):
