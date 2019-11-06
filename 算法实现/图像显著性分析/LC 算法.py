@@ -47,18 +47,21 @@ def lc_significant_image(image, dist_dict):
             temp = image[i, j]
             dst[i, j] = dist_dict[temp]
     result = (dst - np.min(dst)) / (np.max(dst) - np.min(dst))
+    result = np.array(result * 255, dtype=np.uint8)
     return result
 
 
 def demo1():
-    image_path = '../dataset/data/image_sample/bird.jpg'
+    image_path = '../../dataset/data/image_sample/bird.jpg'
+
     image = cv.imread(image_path)
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
     hist_array = cv.calcHist([gray], [0], None, [256], [0.0, 256.0])
     dist_dict = calc_dist(hist_array)
     result = lc_significant_image(image=gray, dist_dict=dist_dict)
-    show_image(result)
+    _, binary = cv.threshold(result, 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+    show_image(binary)
     return
 
 

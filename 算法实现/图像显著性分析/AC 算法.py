@@ -57,9 +57,15 @@ def ac_salient(image):
     return result
 
 
-if __name__ == '__main__':
+def demo1():
     image_path = '../../dataset/data/image_sample/bird.jpg'
+    # image_path = '../../dataset/local_dataset/roi.jpg'
     image = cv.imread(image_path)
     image = cv.cvtColor(image, cv.COLOR_BGR2LAB)
     result = ac_salient(image)
     show_image(result)
+    return
+
+
+if __name__ == '__main__':
+    demo1()

@@ -83,12 +83,12 @@ def significant_image(image):
 
 def significant_image_demo():
     # 1. 灰度化读取文件，
-    # image_path = '../dataset/data/exercise_image/image_text_r.png'
-    # image_path = '../dataset/data/exercise_image/express_paper_1.jpg'
-    # image_path = '../dataset/data/exercise_image/express_paper_2.jpg'
-    # image_path = '../dataset/data/exercise_image/express_paper_3.jpg'
-    # image_path = '../dataset/data/bank_card/card_ 1.png'
-    image_path = '../dataset/data/bank_card/card_ 3.png'
+    # image_path = '../../dataset/data/exercise_image/image_text_r.png'
+    # image_path = '../../dataset/data/exercise_image/express_paper_1.jpg'
+    # image_path = '../../dataset/data/exercise_image/express_paper_2.jpg'
+    # image_path = '../../dataset/data/exercise_image/express_paper_3.jpg'
+    # image_path = '../../dataset/data/bank_card/card_ 1.png'
+    image_path = '../../dataset/data/bank_card/card_ 3.png'
 
     image = cv.imread(image_path, 0)
     idft_magnitude = significant_image(image)
