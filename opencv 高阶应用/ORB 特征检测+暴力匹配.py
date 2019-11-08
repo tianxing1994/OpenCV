@@ -60,7 +60,7 @@ def orb_knn_match(template, scene):
 
     # 使用drawMatchesKnn函数将结果显示
     image = cv.drawMatchesKnn(img1=template, keypoints1=keypoints1, img2=scene,
-                              keypoints2=keypoints2, matches1to2=matches, outImg=scene, flags=2)
+                              keypoints2=keypoints2, matches1to2=matches[:20], outImg=scene, flags=2)
     show_image(image)
     return
 

@@ -55,9 +55,13 @@ def pretty_blur_map(blur_map, sigma=5):
 
 
 def demo1():
-    """ github 作者的实现, 这种方法基本上可以用于检测出模糊图像中清晰的部分. """
-    image_path = 'dataset/data/other/blurred_image.jpg'
-    # image_path = 'dataset/data/other/panda.jpg'
+    """
+    github 作者的实现, 这种方法基本上可以用于检测出模糊图像中清晰的部分.
+    我不明白他对拉普拉斯变换后的操作是出于什么理论,
+    也许只是针对性地想要使此图像中的清晰部分分割出来.
+    """
+    image_path = '../dataset/data/other/blurred_image.jpg'
+    # image_path = '../dataset/data/other/panda.jpg'
     image = cv.imread(image_path)
     image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     print(image.shape)
@@ -78,8 +82,8 @@ def demo2():
     在大量的图像中, 通过设置阈值, 可以通过其模糊度进行图像是否模糊的分类.
     应该注意到, 图像放大后, 其模糊度 score 会变小.
     """
-    image_path = 'dataset/data/other/blurred_image.jpg'
-    # image_path = 'dataset/data/other/panda.jpg'
+    image_path = '../dataset/data/other/blurred_image.jpg'
+    # image_path = '../dataset/data/other/panda.jpg'
 
     image = cv.imread(image_path)
     image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -93,6 +97,19 @@ def demo2():
     return
 
 
+def demo3():
+    image_path = '../dataset/data/other/blurred_image.jpg'
+    # image_path = '../dataset/data/other/panda.jpg'
+    image = cv.imread(image_path)
+    image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    blur_map = cv.Laplacian(image, cv.CV_64F)
+    abs_map = np.abs(blur_map)
+    _, binary = cv.threshold(np.array(abs_map, dtype=np.uint8), 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+    show_image(binary)
+    return
+
+
 if __name__ == '__main__':
     # demo1()
-    demo2()
+    # demo2()
+    demo3()
