@@ -16,7 +16,7 @@ def threshold_demo(image):
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
     # result, binary = cv.threshold(gray, 127, 255, cv.THRESH_TRIANGLE)
-    result, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY|cv.THRESH_OTSU)
+    result, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
     # result, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
     # result, binary = cv.threshold(gray, 127, 255, cv.THRESH_MASK)
     # result, binary = cv.threshold(gray, 127, 255, cv.THRESH_OTSU)
@@ -61,7 +61,7 @@ def custom_threshold(image):
     return
 
 
-if __name__ == '__main__':
+def demo1():
     src = cv.imread("C:/Users/tianx/PycharmProjects/opencv/dataset/image0.JPG")
     cv.namedWindow("input image", cv.WINDOW_AUTOSIZE)
     cv.imshow("input image", src)
@@ -70,3 +70,26 @@ if __name__ == '__main__':
 
     cv.waitKey(0)
     cv.destroyAllWindows()
+    return
+
+
+def demo2():
+    image_path = '../dataset/data/other/silver.jpg'
+    image = cv.imread(image_path)
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+    def callback(threshold):
+        _, binary = cv.threshold(gray, threshold, 255, cv.THRESH_BINARY)
+        cv.imshow('image', binary)
+        pass
+
+    cv.namedWindow('image', cv.WINDOW_NORMAL)
+    cv.createTrackbar('threshold', 'image', 0, 255, callback)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
+    return
+
+
+if __name__ == '__main__':
+    demo2()
