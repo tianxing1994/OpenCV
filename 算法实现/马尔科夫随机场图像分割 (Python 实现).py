@@ -24,7 +24,7 @@ def show_image(image):
     return
 
 
-image_path = r'C:\Users\Administrator\PycharmProjects\OpenCV\dataset\image0.JPG'
+image_path = '../dataset/data/image_sample/image0.JPG'
 image = cv.imread(image_path)
 
 gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -103,4 +103,3 @@ while current_iter < max_iter:
 label_w = label * (255 / (n_cluster-1))
 
 show_image(label_w)
-
