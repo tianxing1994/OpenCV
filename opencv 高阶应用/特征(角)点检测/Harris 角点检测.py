@@ -1,9 +1,20 @@
+"""
+参考链接:
+https://www.cnblogs.com/zyly/p/9508131.html
+https://github.com/makelove/OpenCV-Python-Tutorial
+
+Harris 角点检测返回的是与原图像一样大的 ndarray,
+各像素点的一个可能是角点的值. 该值越大, 则越可能是角点.
+
+通过设定阈值, 我们会得到一些连通的区域, 再通过 cv.connectedComponentsWithStats 函数
+可以求得各连接区域的中心, 可将这些中心作为真正的确点.
+"""
 import cv2
 import numpy as np
 
 
 def harris_corners_detector():
-    img = cv2.imread('../dataset/image0.JPG')
+    img = cv2.imread('../dataset/data/image_sample/image00.jpg')
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -108,4 +119,4 @@ def surf_corners_detector():
 
 
 if __name__ == '__main__':
-    sift_corners_detector()
+    harris_corners_detector()

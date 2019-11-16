@@ -72,6 +72,9 @@ def harris_detect(image, ksize=3):
     m[:, :, 1] = cv2.GaussianBlur(m[:, :, 1], ksize=(ksize, ksize), sigmaX=2)
     m[:, :, 2] = cv2.GaussianBlur(m[:, :, 2], ksize=(ksize, ksize), sigmaX=2)
 
+    # 此处求协方差矩阵的方式比较难理解:
+    # 在当前点为 ksize 的窗口内的点求其协方差矩阵, 而离当前点距离较远的点则具有较低的权重.
+    # 经过对上面的, 求 Ix^2,Iy^2,Ix*Iy, 再进行高斯模糊, 再得到下面的 m 矩阵, 其实就实现了这一目地.
     m = [np.array([[m[i, j, 0],
                     m[i, j, 2]],
 
@@ -103,7 +106,7 @@ def harris_detect(image, ksize=3):
 
 
 if __name__ == '__main__':
-    image = cv2.imread('C:/Users/Administrator/PycharmProjects/OpenCV/dataset/contours.png')
+    image = cv2.imread('../dataset/data/image_sample/image00.jpg')
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     dst = harris_detect(gray)
