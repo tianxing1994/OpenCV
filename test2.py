@@ -1,4 +1,3 @@
+import numpy as np
 
-
-def test():
-    return 1
+np.matrix.sparse
