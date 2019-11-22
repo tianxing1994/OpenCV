@@ -74,7 +74,10 @@ def demo1():
 
 
 def demo2():
-    image_path = '../dataset/data/other/silver.jpg'
+    """通过滑动条观察不同阈值下的二值图."""
+    # image_path = '../dataset/data/other/silver.jpg'
+    # image_path = '../dataset/local_dataset/snapshot_1572330104.jpg'
+    image_path = '../dataset/local_dataset/snapshot_1572427571.jpg'
     image = cv.imread(image_path)
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
