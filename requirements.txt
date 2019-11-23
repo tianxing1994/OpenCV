@@ -15,6 +15,7 @@ idna==2.8
 ImageHash==4.0
 imageio==2.5.0
 imbalanced-learn==0.5.0
+imutils==0.5.3
 Jinja2==2.10.1
 joblib==0.13.2
 kiwisolver==1.1.0
