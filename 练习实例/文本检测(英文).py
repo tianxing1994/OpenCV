@@ -3,6 +3,9 @@
 参考链接:
 https://blog.csdn.net/jkjj2015/article/details/87621668
 
+EAST 模型参考链接:
+https://my.oschina.net/u/876354/blog/3050127
+http://openaccess.thecvf.com/content_cvpr_2017/papers/Zhou_EAST_An_Efficient_CVPR_2017_paper.pdf
 
 预训练好的模型下载链接:
 百度网盘: https://pan.baidu.com/s/1SGB-Sy4vBgwCo6yOJpqfQQ
