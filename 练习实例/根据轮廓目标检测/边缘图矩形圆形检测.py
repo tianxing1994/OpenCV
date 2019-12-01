@@ -1,3 +1,7 @@
+"""
+需要查找的目标有: "矩形", "圆形", "凸包逼近矩形或圆形", "不满足形状, 但凸包完美"
+"""
+import os
 import cv2 as cv
 import numpy as np
 
@@ -46,18 +50,36 @@ def calc_distance(point1, point2):
     return result
 
 
-def convex_hull_rectangular_detection(contour, min_hull_area=3000, max_hull_area=10000, min_fill_rate=0.9):
+def convex_hull_rectangular_detection(contour, min_hull_area=2000, max_hull_area=10000,
+                                      min_hull_fill_rate=0.7, min_bbox_fill_rate=0.9, max_aspect_ratio=5):
+    """
+    轮廓凸包矩形拟合.
+    要求: 最小凸包面积, 最大凸包面积, 最小凸包填充率, 最小矩形填充率, 矩形长宽比, 大型凸包缺陷的数量限制.
+    :param contour:
+    :param min_hull_area:
+    :param max_hull_area:
+    :param min_hull_fill_rate: 最小凸包填充率. 轮廓面积比上凸包面积.
+    :param min_bbox_fill_rate:
+    :param max_aspect_ratio:
+    :return:
+    """
+    contour_area = cv.contourArea(contour)
     hull = cv.convexHull(contour, returnPoints=True)
     hull_area = cv.contourArea(hull)
+    hull_fill_rate = contour_area / hull_area
+    if hull_fill_rate < min_hull_fill_rate:
+        return False
     x, y, w, h = cv.boundingRect(hull)
+    if h / w > max_aspect_ratio or w / h > max_aspect_ratio:
+        return False
     bbox_area = w * h
-    fill_rate = hull_area / bbox_area
+    bbox_fill_rate = hull_area / bbox_area
     if hull_area < min_hull_area:
         return False
     if hull_area > max_hull_area:
         return False
-    if fill_rate < min_fill_rate:
-        print(f"convex_hull_rectangular fill_rate not satisfied: {fill_rate}")
+    if bbox_fill_rate < min_bbox_fill_rate:
+        print(f"convex_hull_rectangular fill_rate not satisfied: {bbox_fill_rate}")
         return False
     return True
 
@@ -69,8 +91,8 @@ def rectangular_detection(contour, threshold=0.9):
     :param threshold: 矩形度量阈值, 轮廓面积/最小外接 bounding box 面积, 不应小于该值.
     :return:
     """
-    if convex_hull_rectangular_detection(contour):
-        return True
+    # if convex_hull_rectangular_detection(contour):
+    #     return True
     area = cv.contourArea(contour)
     x, y, w, h = cv.boundingRect(contour)
     bbox_area = w * h
@@ -104,8 +126,8 @@ def roundness_detection(contour, threshold=0.9):
     :param threshold: 圆度阈值, 轮廓面积/最小外接圆面积, 不应小于该值.
     :return: True 或 False.
     """
-    if convex_hull_roundness_detection(contour):
-        return True
+    # if convex_hull_roundness_detection(contour):
+    #     return True
     center, radius = cv.minEnclosingCircle(contour)
     circle_area = np.pi * radius ** 2
     contour_area = cv.contourArea(contour)
@@ -126,8 +148,12 @@ def shape_filter(contour):
         return True
     if roundness_detection(contour):
         return True
-    if convexity_defects_filter(contour):
+    if convex_hull_rectangular_detection(contour):
         return True
+    if convex_hull_roundness_detection(contour):
+        return True
+    # if convexity_defects_filter(contour):
+    #     return True
     return False
 
 
@@ -185,15 +211,15 @@ def convexity_defects_filter(contour, min_vertices_num=4, min_contour_area=100, 
     return True
 
 
-def vertices_number_filter(contour):
-    if contour.shape[0] < 4:
+def vertices_number_filter(contour, vertices=3):
+    if contour.shape[0] < vertices:
         return False
     return True
 
 
-def contour_area_filter(contour):
+def contour_area_filter(contour, min_contour_area=100):
     area = cv.contourArea(contour)
-    if area < 100:
+    if area < min_contour_area:
         return False
     return True
 
@@ -215,7 +241,7 @@ def contour_filter(contours):
     return result
 
 
-def calc_bright_binary(image):
+def calc_binary1(image):
     """
     将图像转换到 LAB 空间, 取 L 亮度通道计算二值图.
     最后通过 Canny 边缘将二值图进行分割, 避免一些部分的粘连.
@@ -236,6 +262,55 @@ def calc_bright_binary(image):
     return binary
 
 
+def calc_binary2(image):
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+    edge = cv.Canny(gray, 50, 150)
+    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
+    edge_dilate = cv.dilate(edge, kernel)
+
+    _, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+    index = np.where(edge_dilate == 255)
+    binary[index] = 0
+    return binary
+
+
+def calc_binary3(image):
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    edge = cv.Canny(gray, 50, 150)
+    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
+    edge_dilate = cv.dilate(edge, kernel)
+    binary = np.array(np.where(edge_dilate == 255, 0, 255), dtype=np.uint8)
+    return binary
+
+
+def calc_binary4(image):
+    """
+    将图像转换到 LAB 空间, 取 L 亮度通道计算二值图.
+    最后通过 Canny 边缘将二值图进行分割, 避免一些部分的粘连.
+    :param image:
+    :return:
+    """
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    lab_image = cv.cvtColor(image, cv.COLOR_BGR2LAB)
+    l_image = lab_image[:, :, 0]
+
+    edge = cv.Canny(gray, 50, 150)
+    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
+    edge_dilate = cv.dilate(edge, kernel)
+
+    l_image = cv.GaussianBlur(l_image, ksize=(19, 19), sigmaX=5)
+    _, binary = cv.threshold(l_image, 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+    index = np.where(edge_dilate == 255)
+    binary[index] = 0
+    return binary
+
+
+def calc_bright_binary(image):
+    result = calc_binary4(image)
+    return result
+
+
 def demo3():
     # image_path = '../dataset/local_dataset/snapshot_1572513078.jpg'
     # image_path = '../dataset/local_dataset/snapshot_1572427571.jpg'
@@ -252,17 +327,22 @@ def demo3():
     # image_path = '../dataset/local_dataset/snapshot_1572509515.jpg'
     # image_path = '../dataset/local_dataset/snapshot_1572510101.jpg'
     image_path = '../dataset/local_dataset/snapshot_1572514220.jpg'
-    image_origin = cv.imread(image_path)
-    image, h_radio, w_radio = resize_image(image_origin)
+    image_dir = '../../dataset/local_dataset/chuanyuehuoxian'
+    for root, dirs, files in os.walk(image_dir):
+        for file in files:
+            image_path = os.path.join(root, file)
 
-    binary = calc_bright_binary(image)
-    show_image(binary)
-    _, contours, heriachy = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    contours = contour_filter(contours)
-    for i, contour in enumerate(contours):
-        cv.drawContours(image, contours, i, (0, 0, 255), 2)
+            image_origin = cv.imread(image_path)
+            image, h_radio, w_radio = resize_image(image_origin)
 
-    show_image(image)
+            binary = calc_bright_binary(image)
+            show_image(binary)
+            _, contours, heriachy = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+            contours = contour_filter(contours)
+            for i, contour in enumerate(contours):
+                cv.drawContours(image, contours, i, (0, 0, 255), 2)
+
+            show_image(image)
     return
 
 
