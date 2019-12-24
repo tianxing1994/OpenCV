@@ -33,8 +33,8 @@ def show_image(image, win_name='input image'):
     return
 
 
-image1 = cv.imread('../dataset/data/other_sample/box.png',0)
-image2 = cv.imread('../dataset/data/other_sample/box_in_scene.png', 0)
+image1 = cv.imread('../../dataset/data/other_sample/box.png',0)
+image2 = cv.imread('../../dataset/data/other_sample/box_in_scene.png', 0)
 
 # detector = cv.xfeatures2d.SIFT_create()
 detector = cv.xfeatures2d.SURF_create()
