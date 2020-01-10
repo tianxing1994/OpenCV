@@ -13,6 +13,8 @@ https://blog.csdn.net/yongjiankuang/article/details/79808346
 https://blog.csdn.net/WZZ18191171661/article/details/91305466
 将训练好的 SVM 模型应用于完全没有行人的图片中进行检测,
 将其检测出的结果(难例)全部作为负例加入训练集中重新训练模型以提取准确率.
+我尝试了, 目前的模型在训练集上的表现比较好, 也许是需要添加难例,
+还有一个问题就是总感觉这个 detectMultiScale 只会在图像的中间检测一样.
 
 3. 在 demo3 中我尝试加载保存起来的 SVM 参数. 但是后面的流程中出现报错.
 4. 在 demo4 中我保存了已经设置好 SVM 检测器的 HOG 实例, 之后再加载已保存的实例进行行人检测. 程序可执行.
@@ -133,12 +135,30 @@ def get_empty_svm():
     return svm
 
 
+def people_detect_by_image(image, hog):
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    # foundLocations, foundWeights = hog.detectMultiScale(gray, winStride=(4, 4), padding=(8, 8), scale=1.05)
+    foundLocations, foundWeights = hog.detectMultiScale(gray, winStride=(4, 4), padding=(8, 8), scale=1.05)
+    print("foundLocations: ", foundLocations)
+    print("foundWeights: ", foundWeights)
+    for (x, y, w, h), weight in zip(foundLocations, foundWeights):
+        if weight > 0.1:
+            cv.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    show_image(image)
+    return
+
+
 def people_detect(test, hog):
     for image in test:
         gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-        rects, _ = hog.detectMultiScale(gray, winStride=(4, 4), padding=(8, 8), scale=1.05)
-        for (x, y, w, h) in rects:
-            cv.rectangle(image, (x, y), (x+w, y+h), (0, 0, 255), 2)
+        # 我感觉这个 detectMultiScale 好像只会在图像中间去找.
+        # foundLocations, foundWeights = hog.detectMultiScale(gray, winStride=(4, 4), padding=(8, 8), scale=1.05)
+        foundLocations, foundWeights = hog.detectMultiScale(gray, winStride=(8, 8), padding=(8, 8), scale=1.05)
+        print("foundLocations: ", foundLocations)
+        print("foundWeights: ", foundWeights)
+        for (x, y, w, h), weight in zip(foundLocations, foundWeights):
+            if weight > 0.1:
+                cv.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
         show_image(image)
     return
 
@@ -224,14 +244,34 @@ def demo4_1():
 def demo4_2():
     """加载已训练好的模型, 执行行人检测. """
     data_path = '../dataset/data/hog_svm_people_detection'
+
     model_save_dir = '../dataset/data/hog_svm_people_detection'
+
     model_path = os.path.join(model_save_dir, 'hog.bin')
-    _, _, test = load_data(data_path)
+    train, _, test = load_data(data_path)
 
     hog = get_hog_detector()
     hog.load(filename=model_path)
 
     people_detect(test, hog)
+    return
+
+
+def demo4_3():
+    """加载已训练好的模型, 执行行人检测. """
+    # image_path = '../dataset/data/hog_svm_people_detection/positive/per00120.ppm'
+    # image_path = '../dataset/data/hog_svm_people_detection/negative/000009.jpg'
+    # image_path = '../dataset/data/hog_svm_people_detection/test_data/000029.jpg'
+    image_path = '../dataset/data/people/people3.jpg'
+    image = cv.imread(image_path)
+
+    model_save_dir = '../dataset/data/hog_svm_people_detection'
+    model_path = os.path.join(model_save_dir, 'hog.bin')
+
+    hog = get_hog_detector()
+    hog.load(filename=model_path)
+
+    people_detect_by_image(image, hog)
     return
 
 
@@ -249,4 +289,7 @@ def demo5():
 
 
 if __name__ == '__main__':
-    demo5()
+    # demo2()
+    demo4_2()
+    # demo4_3()
+    # demo5()
