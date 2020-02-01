@@ -16,6 +16,8 @@ def get_svm_detector(svm):
     sv = svm.getSupportVectors()
     rho, _, _ = svm.getDecisionFunction(0)
     sv = np.transpose(sv)
+    print(sv.shape)
+    print([[-rho]])
     return np.append(sv, [[-rho]], 0)
 
 
@@ -37,4 +39,5 @@ def get_empty_svm():
     svm.setP(0.5)
     svm.setC(5)
     svm.setType(cv.ml.SVM_C_SVC)
+    # svm.setType(cv.ml.SVM_EPS_SVR)
     return svm
