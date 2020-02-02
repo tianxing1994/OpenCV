@@ -1,50 +1,87 @@
-# 此代码适用opencv3版本以上
-from numpy import *  # 导入numpy的库函数
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
+# -*-coding: utf-8 -*-
+"""
+人体姿态估计.
 
-labels = (1, -1, 1, 1, -1, -1, -1, 1, -1, -1)
-labels = np.array(labels)
-trainingData = np.array([[10, 3], [5, 0.5], [10, 5], [0.5, 10], [0.5, 1.6], [3, 6], [1.2, 4], [6, 6], [0.9, 5], [4, 4]],
-                        dtype='float32');  # 数据集一定要设置成浮点型
-# labels转换成10行1列的矩阵
-labels = labels.reshape(10, 1)
-# trainingData转换成10行2列的矩阵
-trainingData = trainingData.reshape(10, 2)
+参考链接:
+https://github.com/PanJinquan/opencv-learning-tutorials/tree/master/opencv_dnn_pro/openpose-opencv
 
-# 创建分类器
-svm = cv2.ml.SVM_create()
-# 设置svm类型
-svm.setType(cv2.ml.SVM_C_SVC)
-# 核函数
-svm.setKernel(cv2.ml.SVM_LINEAR)
-# 训练
-ret = svm.train(trainingData, cv2.ml.ROW_SAMPLE, labels)
-
-# 测试数据
-# 取0-10之间的整数值
-arrayTest = np.empty(shape=[0, 2], dtype='float32')
-for i in range(10):
-    for j in range(10):
-        arrayTest = np.append(arrayTest, [[i, j]], axis=0)
-pt = np.array(np.random.rand(50, 2) * 10, dtype='float32')  # np.random.rand(50,2) * 10可以替换成arrayTest
-# 预测
-(ret, res) = svm.predict(pt)
-
-# 按label进行分类显示
-plt.figure("分类")
-res = np.hstack((res))  # 在水平方向上平铺
-
-# 第一类
-type_data = pt[res == -1]
-# 绘制散点图
-plt.scatter(np.array(type_data[:, 0]), np.array(type_data[:, 1]), c='r', marker='o')
-
-# 第二类
-type_data = pt[res == 1]
-plt.scatter(np.array(type_data[:, 0]), np.array(type_data[:, 1]), c='g', marker='o')
-
-plt.show()
+模型下载地址:
+https://pan.baidu.com/s/17Ci0elj1cqSU_QV_tPzkWw
+"""
+import cv2 as cv
+import glob
 
 
+def show_image(image, win_name='input image'):
+    cv.namedWindow(win_name, cv.WINDOW_NORMAL)
+    cv.imshow(win_name, image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+    return
+
+
+BODY_PARTS = {"Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
+              "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
+              "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "REye": 14,
+              "LEye": 15, "REar": 16, "LEar": 17, "Background": 18}
+
+POSE_PAIRS = [["Neck", "RShoulder"], ["Neck", "LShoulder"], ["RShoulder", "RElbow"],
+              ["RElbow", "RWrist"], ["LShoulder", "LElbow"], ["LElbow", "LWrist"],
+              ["Neck", "RHip"], ["RHip", "RKnee"], ["RKnee", "RAnkle"], ["Neck", "LHip"],
+              ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"], ["Nose", "REye"],
+              ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"]]
+
+
+def detect_key_point(model_path, image_path, inWidth=368, inHeight=368, threshhold=0.2):
+    net = cv.dnn.readNetFromTensorflow(model_path)
+    frame = cv.imread(image_path)
+    frameHeight, frameWidth = frame.shape[:2]
+    scalefactor = 2.0
+    net.setInput(cv.dnn.blobFromImage(frame, scalefactor, (inWidth, inHeight), (127.5, 127.5, 127.5), swapRB=True, crop=False))
+    out = net.forward()
+    out = out[:, :19, :, :]  # MobileNet output [1, 57, -1, -1], we only need the first 19 elements
+    assert (len(BODY_PARTS) == out.shape[1])
+    points = []
+    for i in range(len(BODY_PARTS)):
+        # Slice heatmap of corresponging body's part.
+        heatMap = out[0, i, :, :]
+        # Originally, we try to find all the local maximums. To simplify a sample
+        # we just find a global one. However only a single pose at the same time
+        # could be detected this way.
+        _, conf, _, point = cv.minMaxLoc(heatMap)
+        x = (frameWidth * point[0]) / out.shape[3]
+        y = (frameHeight * point[1]) / out.shape[2]
+        # Add a point if it's confidence is higher than threshold.
+        points.append((int(x), int(y)) if conf > threshhold else None)
+    for pair in POSE_PAIRS:
+        partFrom = pair[0]
+        partTo = pair[1]
+        assert (partFrom in BODY_PARTS)
+        assert (partTo in BODY_PARTS)
+
+        idFrom = BODY_PARTS[partFrom]
+        idTo = BODY_PARTS[partTo]
+
+        if points[idFrom] and points[idTo]:
+            cv.line(frame, points[idFrom], points[idTo], (0, 255, 0), 3)
+            cv.ellipse(frame, points[idFrom], (3, 3), 0, 0, 360, (0, 0, 255), cv.FILLED)
+            cv.ellipse(frame, points[idTo], (3, 3), 0, 0, 360, (0, 0, 255), cv.FILLED)
+
+    t, _ = net.getPerfProfile()
+    freq = cv.getTickFrequency() / 1000
+    cv.putText(frame, '%.2fms' % (t / freq), (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
+
+    show_image(frame)
+    return
+
+
+def detect_image_list_key_point(image_dir, out_dir, inWidth=480, inHeight=480, threshhold=0.3):
+    image_list = glob.glob(image_dir)
+    for image_path in image_list:
+        detect_key_point(image_path, out_dir, inWidth, inHeight, threshhold)
+
+
+if __name__ == "__main__":
+    model_path = "dataset/pose_estimation/model/graph_opt.pb"
+    image_path = "dataset/pose_estimation/test.jpg"
+    detect_key_point(model_path, image_path, inWidth=368, inHeight=368, threshhold=0.05)
