@@ -65,8 +65,8 @@ def custom_hog_detect(image, hog, svm):
     bounding_box_1 = list()
     idx_1, _ = np.where(target_ == 1)
     for index in idx_1:
-        x1 = int((index % w_ret + 1) * win_stride[0])
-        y1 = int((index // w_ret + 1) * win_stride[1])
+        x1 = int((index % w_ret) * win_stride[0])
+        y1 = int((index // w_ret) * win_stride[1])
         x2 = int(x1 + win_size[0])
         y2 = int(y1 + win_size[1])
         bounding_box_1.append([x1, y1, x2, y2])
@@ -74,8 +74,8 @@ def custom_hog_detect(image, hog, svm):
     bounding_box_2 = list()
     idx_2, _ = np.where(target_ == 2)
     for index in idx_2:
-        x1 = int((index % w_ret + 1) * win_stride[0])
-        y1 = int((index // w_ret + 1) * win_stride[1])
+        x1 = int((index % w_ret) * win_stride[0])
+        y1 = int((index // w_ret) * win_stride[1])
         x2 = int(x1 + win_size[0])
         y2 = int(y1 + win_size[1])
         bounding_box_2.append([x1, y1, x2, y2])

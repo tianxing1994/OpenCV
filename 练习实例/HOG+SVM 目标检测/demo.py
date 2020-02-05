@@ -114,7 +114,7 @@ def demo3():
     image = cv.imread(image_path)
 
     # 对原图像进行细小的缩放以查看模型的健壮性.
-    image = cv.resize(src=image, dsize=(0, 0), fx=1.2, fy=1.2)
+    image = cv.resize(src=image, dsize=(0, 0), fx=1.0, fy=1.0)
 
     bounding_box_1, bounding_box_2 = custom_hog_detect(image=image, hog=hog, svm=svm)
     for bounding_box in bounding_box_1:
