@@ -1,5 +1,5 @@
-import numpy as np
 import cv2 as cv
+import numpy as np
 
 
 def show_image(image, win_name='input image'):
@@ -10,11 +10,10 @@ def show_image(image, win_name='input image'):
     return
 
 
-ret = cv.getGaborKernel(ksize=(60, 60), sigma=9, theta=np.pi/3, lambd=8, gamma=1, psi=np.pi)
-
-min_val, max_val, _, _ = cv.minMaxLoc(ret)
-
-ret += max_val
-ret /= (2*max_val)
-
-show_image(ret)
+image_path = "dataset/data/image_sample/lena.png"
+image = cv.imread(image_path)
+image_ = cv.Laplacian(src=image, ddepth=cv.CV_8U, ksize=1)
+show_image(image_)
+# kernel = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]])
+# image = cv.filter2D(image, cv.CV_8U, kernel)
+# show_image(image)

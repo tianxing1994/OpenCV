@@ -159,7 +159,6 @@ def viterbi(A, B, pi, O):
     return result
 
 
-
 def viterbi_log(pi, A, B, O):
     """
     维特比算法. (对数).
