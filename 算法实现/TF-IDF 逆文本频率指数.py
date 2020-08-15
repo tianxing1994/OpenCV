@@ -63,6 +63,7 @@ def feature_select(data):
     total_words_count = defaultdict(int)
     for doc in data:
         for word in doc:
+            print(word)
             total_words_count[word] += 1
 
     # 计算整个数据集中各词的频率 TF.
@@ -130,8 +131,24 @@ def demo2():
     return
 
 
+def demo3():
+    x_train = [['TF-IDF', '主要', '思想', '是', '算法', '一个', '重要', '特点', '可以', '脱离', '语料库', '背景',
+               '如果', '一个', '网页', '被', '很多', '其他', '网页', '链接', '说明', '网页', '重要'],
+               ['原始', '文本', '进行', '标记', '主要', '思想']]
+
+    # x_test = ['原始 文本 进行 标记', '主要 思想']
+
+    features = feature_select(x_train)
+
+    print(features)
+    print(len(features))
+    return
+
+
 if __name__ == '__main__':
-    demo2()
+    demo1()
+    # demo2()
+    # demo3()
 
 
 
