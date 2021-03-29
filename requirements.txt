@@ -27,7 +27,7 @@ numpy==1.16.3
 opencv-contrib-python==3.4.2.16
 Pillow==6.2.1
 pydicom==0.9.9
-Pygments==2.4.2
+Pygments==2.7.4
 pyparsing==2.4.0
 python-dateutil==2.8.0
 python-magic==0.4.15
